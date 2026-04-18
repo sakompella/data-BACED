@@ -1,5 +1,4 @@
 name: project-app-team-repo
-
 services:
   app:
     build: ./app
@@ -10,7 +9,8 @@ services:
       - WATCHPACK_POLLING=true
     ports:
       - 8501:8501
-
+    networks:
+      - backend
   api:
     build: ./api
     container_name: web-api
@@ -20,7 +20,8 @@ services:
       - WATCHPACK_POLLING=true
     ports:
       - 4000:4000
-
+    networks:
+      - backend
   db:
     env_file:
       - ./api/.env
@@ -32,6 +33,9 @@ services:
       - "mysql_data:/var/lib/mysql"
     ports:
       - 3200:3306
-
+    networks:
+      - backend
 volumes:
   mysql_data:
+networks:
+  backend:

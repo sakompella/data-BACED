@@ -222,7 +222,7 @@ INSERT INTO suppliers (supplier_id, supplier_name, contact_email, phone_number) 
 (24, 'Atlantic Provisions', 'sales@atlanticprov.com', '617-555-1145'),
 (25, 'Blue Ridge Dairy', 'info@blueridgedairy.com', '617-555-2256'),
 (26, 'Farmhouse Creamery', 'orders@farmhousecream.com', '617-555-3367'),
-(27, 'Pacific Rim Imports', 'buy@pacificrimfood.com', '617-555-4478'),
+(27, 'Pacific Rim Imports', 'buy@pacificrimfood.com', '617-555-5478'),
 (28, 'Keystone Provisions', 'sales@keystoneprov.com', '617-555-5589'),
 (29, 'Riverside Bakery Supply', 'info@riversidebake.com', '617-555-6690'),
 (30, 'Summit Specialty Foods', 'orders@summitspecialty.com', '617-555-7701');

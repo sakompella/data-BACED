@@ -7,6 +7,9 @@ from backend.db_connection import init_app as init_db
 from backend.simple.simple_routes import simple_routes
 from backend.ngos.ngo_routes import ngos
 
+from backend.inventory.inventory_routes import inventory
+from backend.orders.orders_routes import orders
+
 
 def create_app():
     app = Flask(__name__)
@@ -37,5 +40,9 @@ def create_app():
     app.logger.info("create_app(): registering blueprints")
     app.register_blueprint(simple_routes)
     app.register_blueprint(ngos, url_prefix="/ngo")
+    app.register_blueprint(inventory, url_prefix="/inv")
+    app.register_blueprint(orders, url_prefix="/ord")
+
+
 
     return app
