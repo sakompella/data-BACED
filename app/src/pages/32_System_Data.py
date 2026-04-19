@@ -6,7 +6,7 @@ import requests
 import pandas as pd
 import plotly.express as px
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_badge, API_BASE
+from modules.style import inject_custom_css, status_text, API_BASE
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -48,46 +48,25 @@ with left_col:
     menu_data, _ = safe_get(f"{API_BASE}/menu/menu_items")
     ingredients_data, _ = safe_get(f"{API_BASE}/inv/ingredients")
 
-    health_rows = [
-        ("API Status", "Online" if api_online else "Down",
-         status_badge("Online", "green") if api_online else status_badge("Down", "red")),
-        ("Total Users", str(len(users_data)),
-         status_badge("OK", "green")),
-        ("Total Orders", str(len(orders_data)),
-         status_badge("OK", "green")),
-        ("Menu Items", str(len(menu_data)),
-         status_badge("OK", "green")),
-        ("Ingredients", str(len(ingredients_data)),
-         status_badge("OK", "green")),
-    ]
+    health_df = pd.DataFrame({
+        "Metric": ["API Status", "Total Users", "Total Orders", "Menu Items", "Ingredients"],
+        "Value": [
+            "Online" if api_online else "Down",
+            str(len(users_data)),
+            str(len(orders_data)),
+            str(len(menu_data)),
+            str(len(ingredients_data)),
+        ],
+        "Status": [
+            status_text("Online", "green") if api_online else status_text("Down", "red"),
+            status_text("OK", "green"),
+            status_text("OK", "green"),
+            status_text("OK", "green"),
+            status_text("OK", "green"),
+        ],
+    })
 
-    header = (
-        "<tr>"
-        "<th style='text-align:left;padding:10px 12px;'>Metric</th>"
-        "<th style='text-align:right;padding:10px 12px;'>Value</th>"
-        "<th style='text-align:center;padding:10px 12px;'>Status</th>"
-        "</tr>"
-    )
-    rows_html = ""
-    for metric, value, badge in health_rows:
-        rows_html += (
-            f"<tr>"
-            f"<td style='padding:10px 12px;'>{metric}</td>"
-            f"<td style='padding:10px 12px;text-align:right;'>{value}</td>"
-            f"<td style='padding:10px 12px;text-align:center;'>{badge}</td>"
-            f"</tr>"
-        )
-
-    st.markdown(f"""
-    <table style="width:100%;border-collapse:collapse;font-size:0.95em;">
-        <thead style="background:#F0F0F0;font-weight:600;">
-            {header}
-        </thead>
-        <tbody>{rows_html}</tbody>
-    </table>
-    """, unsafe_allow_html=True)
-
-    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+    st.dataframe(health_df, use_container_width=True, hide_index=True)
 
     # ---- Section 2: Data Discrepancies ------------------------------------
     st.subheader("Potential Data Discrepancies")
@@ -127,38 +106,12 @@ with left_col:
                 discrepancies_df = discrepancies_df.drop_duplicates(subset=["Item"]).reset_index(drop=True)
 
     if not discrepancies_df.empty:
-        disc_header = (
-            "<tr>"
-            "<th style='text-align:left;padding:10px 12px;'>Item</th>"
-            "<th style='text-align:right;padding:10px 12px;'>Expected</th>"
-            "<th style='text-align:right;padding:10px 12px;'>Actual</th>"
-            "<th style='text-align:right;padding:10px 12px;'>Variance</th>"
-            "<th style='text-align:center;padding:10px 12px;'>Action</th>"
-            "</tr>"
+        display_df = discrepancies_df.copy()
+        display_df["Variance"] = display_df["Variance"].apply(
+            lambda v: status_text(f"{v:.1f}", "red")
         )
-        disc_rows = ""
-        for _, row in discrepancies_df.iterrows():
-            variance_badge = status_badge(f"{row['Variance']:.1f}", "red")
-            disc_rows += (
-                f"<tr>"
-                f"<td style='padding:10px 12px;'>{row['Item']}</td>"
-                f"<td style='padding:10px 12px;text-align:right;'>{row['Expected']}</td>"
-                f"<td style='padding:10px 12px;text-align:right;'>{row['Actual']}</td>"
-                f"<td style='padding:10px 12px;text-align:right;'>{variance_badge}</td>"
-                f"<td style='padding:10px 12px;text-align:center;'>"
-                f"<span style='color:#2E75ED;cursor:pointer;font-weight:600;'>Investigate</span>"
-                f"</td>"
-                f"</tr>"
-            )
-
-        st.markdown(f"""
-        <table style="width:100%;border-collapse:collapse;font-size:0.95em;">
-            <thead style="background:#F0F0F0;font-weight:600;">
-                {disc_header}
-            </thead>
-            <tbody>{disc_rows}</tbody>
-        </table>
-        """, unsafe_allow_html=True)
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
+        st.caption("Items shown have actual stock below expected levels.")
     else:
         st.info("No data discrepancies detected.")
 
@@ -198,7 +151,6 @@ with right_col:
 # ---------------------------------------------------------------------------
 # Bottom buttons
 # ---------------------------------------------------------------------------
-st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
 btn_export, btn_refresh, _ = st.columns([1, 1, 3])
 
 with btn_export:

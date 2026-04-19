@@ -7,7 +7,7 @@ import pandas as pd
 from datetime import datetime
 from email.utils import parsedate_to_datetime
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_badge, API_BASE
+from modules.style import inject_custom_css, status_text, API_BASE
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -73,17 +73,14 @@ with tab_orders:
             label, color_key = STATUS_MAP.get(status_raw, (status_raw, "gray"))
 
             with st.container(border=True):
-                # Header: table number, status badge, time ago
+                # Header: table number, status, time ago
                 cols = st.columns([3, 2, 3])
                 with cols[0]:
                     st.markdown(f"**Table {table_id}**")
                 with cols[1]:
-                    st.markdown(status_badge(label, color_key), unsafe_allow_html=True)
+                    st.markdown(status_text(label, color_key))
                 with cols[2]:
-                    st.markdown(
-                        f"<span style='color:#888;font-size:0.9em'>{time_ago(created_at)}</span>",
-                        unsafe_allow_html=True,
-                    )
+                    st.caption(time_ago(created_at))
 
                 st.divider()
 
@@ -109,17 +106,13 @@ with tab_orders:
                         with item_cols[1]:
                             st.write(name)
                         with item_cols[2]:
-                            # Per-item status mirrors the order status (DB has no per-item status)
-                            st.markdown(
-                                status_badge(label, color_key),
-                                unsafe_allow_html=True,
-                            )
+                            st.markdown(status_text(label, color_key))
                 else:
                     st.caption("No items in this order.")
 
                 # Footer placeholder
                 num_items = len(items)
-                st.caption(f"Guests: 1 \u2022 Course 1 of 1 \u2022 {num_items} item{'s' if num_items != 1 else ''}")
+                st.caption(f"Guests: 1 · Course 1 of 1 · {num_items} item{'s' if num_items != 1 else ''}")
 
 # ── Menu Items tab ──────────────────────────────────────────────────────────
 

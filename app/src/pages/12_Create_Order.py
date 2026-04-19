@@ -5,7 +5,7 @@ import streamlit as st
 import requests
 from datetime import datetime
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_badge, API_BASE
+from modules.style import inject_custom_css, status_text, API_BASE
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -62,10 +62,10 @@ with col_left:
                 st.markdown(f"**{item['item_name']}**")
                 st.markdown(f"${float(item['price']):.2f}")
                 badge_color = "green" if is_available else "amber"
-                badge_text = "Available" if is_available else "Unavailable"
-                st.markdown(status_badge(badge_text, badge_color), unsafe_allow_html=True)
+                badge_label = "Available" if is_available else "Unavailable"
+                st.markdown(status_text(badge_label, badge_color))
             with card_right:
-                st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+                st.write("")
                 if st.button(
                     "ADD +",
                     key=f"add_{item['menu_item_id']}",

@@ -6,7 +6,7 @@ import requests
 import pandas as pd
 import plotly.express as px
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_badge, API_BASE
+from modules.style import inject_custom_css, status_text, API_BASE
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -84,42 +84,27 @@ usage_df["status"] = usage_df.apply(
     lambda r: "Low" if r["in_stock"] <= r["reorder_count"] else "OK", axis=1
 )
 
-# Build HTML table
-header = (
-    "<tr>"
-    "<th style='text-align:left;padding:10px 12px;'>Ingredient</th>"
-    "<th style='text-align:right;padding:10px 12px;'>Used ({period})</th>"
-    "<th style='text-align:right;padding:10px 12px;'>Avg/Day</th>"
-    "<th style='text-align:right;padding:10px 12px;'>In Stock</th>"
-    "<th style='text-align:center;padding:10px 12px;'>Status</th>"
-    "</tr>"
-).format(period=period)
+# Build dataframe for display
+ingredient_display = pd.DataFrame({
+    "Ingredient": usage_df["ingredient_name"],
+    f"Used ({period})": usage_df["used"],
+    "Avg/Day": usage_df["avg_per_day"],
+    "In Stock": usage_df["in_stock"],
+    "Status": usage_df["status"].apply(lambda s: status_text(s, s.lower())),
+})
 
-rows_html = ""
-for _, row in usage_df.iterrows():
-    badge = status_badge(row["status"], row["status"].lower())
-    rows_html += (
-        f"<tr>"
-        f"<td style='padding:10px 12px;'>{row['ingredient_name']}</td>"
-        f"<td style='padding:10px 12px;text-align:right;'>{row['used']:.1f}</td>"
-        f"<td style='padding:10px 12px;text-align:right;'>{row['avg_per_day']:.1f}</td>"
-        f"<td style='padding:10px 12px;text-align:right;'>{row['in_stock']}</td>"
-        f"<td style='padding:10px 12px;text-align:center;'>{badge}</td>"
-        f"</tr>"
-    )
-
-table_html = f"""
-<table style="width:100%;border-collapse:collapse;font-size:0.95em;">
-    <thead style="background:#F0F0F0;font-weight:600;">
-        {header}
-    </thead>
-    <tbody>
-        {rows_html if rows_html else "<tr><td colspan='5' style='padding:20px;text-align:center;color:#999;'>No usage data.</td></tr>"}
-    </tbody>
-</table>
-"""
-st.markdown(table_html, unsafe_allow_html=True)
-st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+st.dataframe(
+    ingredient_display,
+    column_config={
+        "Ingredient": st.column_config.TextColumn("Ingredient"),
+        f"Used ({period})": st.column_config.NumberColumn(f"Used ({period})", format="%.1f"),
+        "Avg/Day": st.column_config.NumberColumn("Avg/Day", format="%.1f"),
+        "In Stock": st.column_config.NumberColumn("In Stock", format="%d"),
+        "Status": st.column_config.TextColumn("Status"),
+    },
+    hide_index=True,
+    use_container_width=True,
+)
 
 # ---------------------------------------------------------------------------
 # Section 2: Daily Sales Summary + Revenue Chart
@@ -149,32 +134,20 @@ with col_sales:
             .sort_values("date")
         )
 
-        sales_header = (
-            "<tr>"
-            "<th style='text-align:left;padding:10px 12px;'>Date</th>"
-            "<th style='text-align:right;padding:10px 12px;'>Orders</th>"
-            "</tr>"
-        )
-        sales_rows = ""
-        for _, row in daily.iterrows():
-            sales_rows += (
-                f"<tr>"
-                f"<td style='padding:10px 12px;'>{row['date']}</td>"
-                f"<td style='padding:10px 12px;text-align:right;'>{row['orders']}</td>"
-                f"</tr>"
-            )
+        sales_display = pd.DataFrame({
+            "Date": daily["date"].astype(str),
+            "Orders": daily["orders"],
+        })
 
-        sales_html = f"""
-        <table style="width:100%;border-collapse:collapse;font-size:0.95em;">
-            <thead style="background:#F0F0F0;font-weight:600;">
-                {sales_header}
-            </thead>
-            <tbody>
-                {sales_rows}
-            </tbody>
-        </table>
-        """
-        st.markdown(sales_html, unsafe_allow_html=True)
+        st.dataframe(
+            sales_display,
+            column_config={
+                "Date": st.column_config.TextColumn("Date"),
+                "Orders": st.column_config.NumberColumn("Orders", format="%d"),
+            },
+            hide_index=True,
+            use_container_width=True,
+        )
     else:
         st.info("No order data available.")
 
@@ -200,8 +173,6 @@ with col_chart:
 # ---------------------------------------------------------------------------
 # Bottom: Export
 # ---------------------------------------------------------------------------
-st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-
 export_df = usage_df[["ingredient_name", "used", "avg_per_day", "in_stock", "status"]].copy()
 export_df.columns = ["Ingredient", f"Used ({period})", "Avg/Day", "In Stock", "Status"]
 

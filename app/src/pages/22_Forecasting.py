@@ -5,7 +5,7 @@ import streamlit as st
 import requests
 import pandas as pd
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_badge, API_BASE
+from modules.style import inject_custom_css, status_text, API_BASE
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -70,45 +70,36 @@ with tab_comparison:
             return "Medium"
         return "Low"
 
-    merged["risk"] = merged["variance"].apply(risk_level)
-
     RISK_COLOR = {"High": "red", "Medium": "amber", "Low": "green"}
 
-    header = (
-        "<tr>"
-        "<th style='text-align:left;padding:10px 12px;'>Ingredient</th>"
-        "<th style='text-align:right;padding:10px 12px;'>Expected (7d)</th>"
-        "<th style='text-align:right;padding:10px 12px;'>Actual Stock</th>"
-        "<th style='text-align:right;padding:10px 12px;'>Variance</th>"
-        "<th style='text-align:center;padding:10px 12px;'>Risk</th>"
-        "</tr>"
-    )
+    merged["risk"] = merged["variance"].apply(risk_level)
 
-    rows_html = ""
-    for _, row in merged.iterrows():
-        variance_str = f"+{row['variance']:.0f}" if row["variance"] >= 0 else f"{row['variance']:.0f}"
-        badge = status_badge(row["risk"], RISK_COLOR[row["risk"]])
-        rows_html += (
-            f"<tr>"
-            f"<td style='padding:10px 12px;'>{row['ingredient_name']}</td>"
-            f"<td style='padding:10px 12px;text-align:right;'>{row['expected_7d']:.0f}</td>"
-            f"<td style='padding:10px 12px;text-align:right;'>{row['quantity']}</td>"
-            f"<td style='padding:10px 12px;text-align:right;'>{variance_str}</td>"
-            f"<td style='padding:10px 12px;text-align:center;'>{badge}</td>"
-            f"</tr>"
+    display_df = pd.DataFrame({
+        "Ingredient": merged["ingredient_name"],
+        "Expected (7d)": merged["expected_7d"],
+        "Actual Stock": merged["quantity"],
+        "Variance": merged["variance"].apply(
+            lambda v: f"+{v:.0f}" if v >= 0 else f"{v:.0f}"
+        ),
+        "Risk": merged["risk"].apply(
+            lambda r: status_text(r, RISK_COLOR[r])
+        ),
+    })
+
+    if display_df.empty:
+        st.info("No comparison data available.")
+    else:
+        st.dataframe(
+            display_df,
+            column_config={
+                "Expected (7d)": st.column_config.NumberColumn("Expected (7d)"),
+                "Actual Stock": st.column_config.NumberColumn("Actual Stock"),
+                "Variance": st.column_config.TextColumn("Variance"),
+                "Risk": st.column_config.TextColumn("Risk"),
+            },
+            hide_index=True,
+            use_container_width=True,
         )
-
-    table_html = f"""
-    <table style="width:100%;border-collapse:collapse;font-size:0.95em;">
-        <thead style="background:#F0F0F0;font-weight:600;">
-            {header}
-        </thead>
-        <tbody>
-            {rows_html if rows_html else "<tr><td colspan='5' style='padding:20px;text-align:center;color:#999;'>No comparison data available.</td></tr>"}
-        </tbody>
-    </table>
-    """
-    st.markdown(table_html, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # Supplier Prices
@@ -127,20 +118,13 @@ with tab_prices:
     if not prices_data:
         st.warning("No supplier price data found.")
     else:
-        header_prices = (
-            "<tr>"
-            "<th style='text-align:left;padding:10px 12px;'>Supplier</th>"
-            "<th style='text-align:left;padding:10px 12px;'>Item</th>"
-            "<th style='text-align:right;padding:10px 12px;'>Prev. Price</th>"
-            "<th style='text-align:right;padding:10px 12px;'>Curr. Price</th>"
-            "<th style='text-align:center;padding:10px 12px;'>Change</th>"
-            "</tr>"
-        )
+        prices_df = pd.DataFrame(prices_data)
+        prices_df["previous_price"] = pd.to_numeric(prices_df["previous_price"], errors="coerce")
+        prices_df["current_price"] = pd.to_numeric(prices_df["current_price"], errors="coerce")
 
-        rows_prices = ""
-        for item in prices_data:
-            prev = float(item["previous_price"])
-            curr = float(item["current_price"])
+        def format_change(row):
+            prev = row["previous_price"]
+            curr = row["current_price"]
             if prev and prev != 0:
                 pct = (curr - prev) / prev * 100
                 sign = "+" if pct >= 0 else ""
@@ -149,34 +133,30 @@ with tab_prices:
             else:
                 change_str = "N/A"
                 color_key = "gray"
+            return status_text(change_str, color_key)
 
-            badge = status_badge(change_str, color_key)
-            rows_prices += (
-                f"<tr>"
-                f"<td style='padding:10px 12px;'>{item['supplier_name']}</td>"
-                f"<td style='padding:10px 12px;'>{item['ingredient_name']}</td>"
-                f"<td style='padding:10px 12px;text-align:right;'>${prev:.2f}</td>"
-                f"<td style='padding:10px 12px;text-align:right;'>${curr:.2f}</td>"
-                f"<td style='padding:10px 12px;text-align:center;'>{badge}</td>"
-                f"</tr>"
-            )
+        display_prices = pd.DataFrame({
+            "Supplier": prices_df["supplier_name"],
+            "Item": prices_df["ingredient_name"],
+            "Prev. Price": prices_df["previous_price"],
+            "Curr. Price": prices_df["current_price"],
+            "Change": prices_df.apply(format_change, axis=1),
+        })
 
-        table_prices_html = f"""
-        <table style="width:100%;border-collapse:collapse;font-size:0.95em;">
-            <thead style="background:#F0F0F0;font-weight:600;">
-                {header_prices}
-            </thead>
-            <tbody>
-                {rows_prices}
-            </tbody>
-        </table>
-        """
-        st.markdown(table_prices_html, unsafe_allow_html=True)
+        st.dataframe(
+            display_prices,
+            column_config={
+                "Prev. Price": st.column_config.NumberColumn("Prev. Price", format="$%.2f"),
+                "Curr. Price": st.column_config.NumberColumn("Curr. Price", format="$%.2f"),
+                "Change": st.column_config.TextColumn("Change"),
+            },
+            hide_index=True,
+            use_container_width=True,
+        )
 
 # ---------------------------------------------------------------------------
 # Bottom actions
 # ---------------------------------------------------------------------------
-st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
 btn_col1, btn_col2, _ = st.columns([1, 1, 3])
 
 with btn_col1:
