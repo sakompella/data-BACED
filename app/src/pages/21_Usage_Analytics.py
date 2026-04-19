@@ -119,6 +119,19 @@ try:
 except requests.RequestException:
     orders_data = []
 
+# Fetch menu items for average price calculation
+try:
+    menu_resp = requests.get(f"{API_BASE}/menu/menu_items")
+    menu_resp.raise_for_status()
+    menu_items_data = menu_resp.json()
+except requests.RequestException:
+    menu_items_data = []
+
+avg_menu_price = 0.0
+if menu_items_data:
+    prices = [float(item["price"]) for item in menu_items_data if item.get("price")]
+    avg_menu_price = sum(prices) / len(prices) if prices else 0.0
+
 with col_sales:
     st.subheader("Daily Sales Summary")
 
@@ -134,9 +147,14 @@ with col_sales:
             .sort_values("date")
         )
 
+        daily["revenue"] = daily["orders"] * avg_menu_price
+        daily["top_seller"] = "—"
+
         sales_display = pd.DataFrame({
             "Date": daily["date"].astype(str),
             "Orders": daily["orders"],
+            "Est. Revenue": daily["revenue"],
+            "Top Seller": daily["top_seller"],
         })
 
         st.dataframe(
@@ -144,10 +162,13 @@ with col_sales:
             column_config={
                 "Date": st.column_config.TextColumn("Date"),
                 "Orders": st.column_config.NumberColumn("Orders", format="%d"),
+                "Est. Revenue": st.column_config.NumberColumn("Est. Revenue", format="$%.2f"),
+                "Top Seller": st.column_config.TextColumn("Top Seller"),
             },
             hide_index=True,
             use_container_width=True,
         )
+        st.caption("Revenue estimated using average menu item price.")
     else:
         st.info("No order data available.")
 
