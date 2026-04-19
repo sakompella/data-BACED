@@ -9,6 +9,8 @@ from backend.ngos.ngo_routes import ngos
 
 from backend.inventory.inventory_routes import inventory
 from backend.orders.orders_routes import orders
+from backend.menu_service.menu_service_routes import menu_service
+from backend.user_managment.user_management_routes import user_management
 
 
 def create_app():
@@ -42,6 +44,8 @@ def create_app():
     app.register_blueprint(ngos, url_prefix="/ngo")
     app.register_blueprint(inventory, url_prefix="/inv")
     app.register_blueprint(orders, url_prefix="/ord")
+    app.register_blueprint(menu_service, url_prefix="/menu")
+    app.register_blueprint(user_management, url_prefix="/user")
 
 
 
