@@ -12,7 +12,7 @@ def home_nav():
 
 
 def about_page_nav():
-    st.sidebar.page_link("pages/30_About.py", label="About", icon="🧠")
+    st.sidebar.page_link("pages/40_About.py", label="About", icon="🧠")
 
 
 # ---- Role: pol_strat_advisor ------------------------------------------------
