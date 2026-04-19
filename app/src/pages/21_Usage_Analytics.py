@@ -62,14 +62,16 @@ ingredients_df = pd.DataFrame(ingredients_data)
 
 # Compute period usage from expected_quantity and frequency
 def compute_used(row):
-    freq = row.get("usage_frequency", "daily").lower()
+    freq = row.get("time_period", row.get("usage_frequency", "daily")).lower()
     multipliers = FREQ_MULTIPLIERS.get(freq, FREQ_MULTIPLIERS["daily"])
-    return row["expected_quantity"] * multipliers[str(days)]
+    return float(row["expected_quantity"]) * multipliers[str(days)]
 
-usage_df["used"] = usage_df.apply(compute_used, axis=1)
+usage_df["used"] = usage_df.apply(compute_used, axis=1).astype(float)
 usage_df["avg_per_day"] = usage_df["used"] / days
 
 # Join with ingredients for current stock and reorder threshold
+ingredients_df["quantity"] = pd.to_numeric(ingredients_df["quantity"], errors="coerce")
+ingredients_df["reorder_count"] = pd.to_numeric(ingredients_df["reorder_count"], errors="coerce")
 stock_lookup = ingredients_df.set_index("ingredient_name")[["quantity", "reorder_count"]].to_dict("index")
 
 usage_df["in_stock"] = usage_df["ingredient_name"].map(

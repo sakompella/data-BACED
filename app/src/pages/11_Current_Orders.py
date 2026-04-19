@@ -5,6 +5,7 @@ import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime
+from email.utils import parsedate_to_datetime
 from modules.nav import SideBarLinks
 from modules.style import inject_custom_css, status_badge, API_BASE
 
@@ -26,8 +27,13 @@ def time_ago(created_at) -> str:
     if created_at is None:
         return ""
     if isinstance(created_at, str):
-        # MySQL datetime format from JSON
-        created_at = datetime.fromisoformat(created_at)
+        try:
+            created_at = parsedate_to_datetime(created_at)
+        except (ValueError, TypeError):
+            try:
+                created_at = datetime.fromisoformat(created_at)
+            except ValueError:
+                return ""
     delta = datetime.now() - created_at
     total_seconds = int(delta.total_seconds())
     if total_seconds < 60:
