@@ -133,7 +133,7 @@ elif not menu_items:
 else:
     for item in menu_items:
         mid = item["menu_item_id"]
-        avail = item.get("availability_status", True)
+        avail = item.get("availability_status") == "available"
 
         cols = st.columns([3, 4, 1.5, 2])
         cols[0].markdown(f"**{item.get('item_name', '—')}**")
@@ -146,7 +146,7 @@ else:
                     try:
                         resp = requests.put(
                             f"{API_BASE}/menu/menu_items/{mid}",
-                            json={"availability_status": False},
+                            json={"availability_status": "unavailable"},
                         )
                         if resp.status_code == 200:
                             st.rerun()
