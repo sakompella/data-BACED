@@ -51,15 +51,17 @@ with tab_comparison:
     ing_df = pd.DataFrame(ing_data)
 
     # Adjust expected quantity by frequency for a 7-day window
+    usage_df["expected_quantity"] = pd.to_numeric(usage_df["expected_quantity"], errors="coerce")
     usage_df["expected_7d"] = usage_df.apply(
-        lambda r: r["expected_quantity"] * FREQ_MULTIPLIERS.get(
-            str(r.get("frequency", "")).lower(), 1
+        lambda r: float(r["expected_quantity"]) * FREQ_MULTIPLIERS.get(
+            str(r.get("time_period", r.get("frequency", "daily"))).lower(), 1
         ),
         axis=1,
     )
 
+    ing_df["quantity"] = pd.to_numeric(ing_df["quantity"], errors="coerce")
     merged = usage_df.merge(ing_df, on="ingredient_name", how="inner", suffixes=("_usage", "_inv"))
-    merged["variance"] = merged["quantity"] - merged["expected_7d"]
+    merged["variance"] = merged["quantity"].astype(float) - merged["expected_7d"].astype(float)
 
     def risk_level(variance):
         if variance < 0:
@@ -137,8 +139,8 @@ with tab_prices:
 
         rows_prices = ""
         for item in prices_data:
-            prev = item["previous_price"]
-            curr = item["current_price"]
+            prev = float(item["previous_price"])
+            curr = float(item["current_price"])
             if prev and prev != 0:
                 pct = (curr - prev) / prev * 100
                 sign = "+" if pct >= 0 else ""

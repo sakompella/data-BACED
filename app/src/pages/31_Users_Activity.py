@@ -52,7 +52,7 @@ else:
 
     rows_html = ""
     for u in users:
-        full_name = f"{u['first_name']} {u['last_name']}"
+        full_name = u.get("name", f"{u.get('first_name', '')} {u.get('last_name', '')}".strip())
         role_name = role_map.get(u.get("role_id"), "Unknown")
         badge = status_badge("Active", "active")
         rows_html += (
@@ -119,17 +119,20 @@ with st.expander("Modify Users..."):
         st.warning("No users available to modify.")
     else:
         user_options = {
-            f"{u['first_name']} {u['last_name']} (ID {u['user_id']})": u
+            f"{u.get('name', u.get('first_name', ''))} (ID {u['user_id']})": u
             for u in users
         }
         selected_label = st.selectbox("Select User", options=list(user_options.keys()))
         selected_user = user_options[selected_label]
 
+        # API may return 'name' (single field) or 'first_name'/'last_name'
+        current_name = selected_user.get("name", f"{selected_user.get('first_name', '')} {selected_user.get('last_name', '')}".strip())
+        name_parts = current_name.split(" ", 1)
         col1, col2 = st.columns(2)
         with col1:
-            new_first = st.text_input("First Name", value=selected_user["first_name"])
+            new_first = st.text_input("First Name", value=name_parts[0])
         with col2:
-            new_last = st.text_input("Last Name", value=selected_user["last_name"])
+            new_last = st.text_input("Last Name", value=name_parts[1] if len(name_parts) > 1 else "")
 
         new_email = st.text_input("Email", value=selected_user.get("email", ""))
 
@@ -169,7 +172,7 @@ with st.expander("Modify Users..."):
             if st.session_state.get("confirm_delete"):
                 st.warning(
                     f"Are you sure you want to delete "
-                    f"**{selected_user['first_name']} {selected_user['last_name']}**?"
+                    f"**{selected_user.get('name', current_name)}**?"
                 )
                 c1, c2, _ = st.columns([1, 1, 3])
                 with c1:

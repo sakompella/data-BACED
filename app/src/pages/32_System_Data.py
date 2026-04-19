@@ -135,7 +135,7 @@ with left_col:
         )
         disc_rows = ""
         for _, row in discrepancies_df.iterrows():
-            variance_badge = status_badge(str(row["Variance"]), "red")
+            variance_badge = status_badge(f"{row['Variance']:.1f}", "red")
             disc_rows += (
                 f"<tr>"
                 f"<td style='padding:10px 12px;'>{row['Item']}</td>"
