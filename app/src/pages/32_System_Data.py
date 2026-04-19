@@ -121,7 +121,10 @@ with left_col:
             if not neg.empty:
                 discrepancies_df = neg[["ingredient_name", "expected_qty", "actual_qty", "variance"]].copy()
                 discrepancies_df.columns = ["Item", "Expected", "Actual", "Variance"]
-                discrepancies_df = discrepancies_df.reset_index(drop=True)
+                discrepancies_df["Expected"] = discrepancies_df["Expected"].round(1)
+                discrepancies_df["Actual"] = discrepancies_df["Actual"].round(1)
+                discrepancies_df["Variance"] = discrepancies_df["Variance"].round(1)
+                discrepancies_df = discrepancies_df.drop_duplicates(subset=["Item"]).reset_index(drop=True)
 
     if not discrepancies_df.empty:
         disc_header = (
