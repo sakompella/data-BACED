@@ -6,7 +6,7 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_badge, API_BASE
+from modules.style import inject_custom_css, status_text, API_BASE
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -70,48 +70,30 @@ with tab_stock:
     if status_filter != "All":
         filtered = filtered[filtered["status"] == status_filter]
 
-    # Build HTML table
-    header = (
-        "<tr>"
-        "<th style='text-align:left;padding:10px 12px;'>Ingredient</th>"
-        "<th style='text-align:right;padding:10px 12px;'>Qty</th>"
-        "<th style='text-align:left;padding:10px 12px;'>Unit</th>"
-        "<th style='text-align:left;padding:10px 12px;'>Latest Exp. Date</th>"
-        "<th style='text-align:center;padding:10px 12px;'>Status</th>"
-        "<th style='text-align:left;padding:10px 12px;'>Details</th>"
-        "</tr>"
+    display_df = filtered.copy()
+    display_df["Status"] = display_df["status"].apply(
+        lambda s: status_text(s, s.lower())
+    )
+    display_df["Expiration Date"] = display_df["expiration_date"].dt.strftime("%Y-%m-%d")
+    display_df["Details"] = display_df.apply(
+        lambda r: f"Reorder at {r['reorder_count']} · Supplier: {r['supplier_name']}",
+        axis=1,
     )
 
-    rows_html = ""
-    for _, row in filtered.iterrows():
-        color_key = row["status"].lower()
-        badge = status_badge(row["status"], color_key)
-        exp_str = row["expiration_date"].strftime("%Y-%m-%d")
-        detail = f"Reorder at {row['reorder_count']} · Supplier: {row['supplier_name']}"
-        rows_html += (
-            f"<tr>"
-            f"<td style='padding:10px 12px;'>{row['ingredient_name']}</td>"
-            f"<td style='padding:10px 12px;text-align:right;'>{row['quantity']}</td>"
-            f"<td style='padding:10px 12px;'>{row['unit']}</td>"
-            f"<td style='padding:10px 12px;'>{exp_str}</td>"
-            f"<td style='padding:10px 12px;text-align:center;'>{badge}</td>"
-            f"<td style='padding:10px 12px;font-size:0.85em;color:#666;'>{detail}</td>"
-            f"</tr>"
-        )
+    st.dataframe(
+        display_df[["ingredient_name", "quantity", "unit", "Expiration Date", "Status", "Details"]],
+        column_config={
+            "ingredient_name": st.column_config.TextColumn("Ingredient"),
+            "quantity": st.column_config.NumberColumn("Qty"),
+            "unit": st.column_config.TextColumn("Unit"),
+            "Expiration Date": st.column_config.TextColumn("Latest Exp. Date"),
+            "Status": st.column_config.TextColumn("Status"),
+            "Details": st.column_config.TextColumn("Details"),
+        },
+        hide_index=True,
+        use_container_width=True,
+    )
 
-    table_html = f"""
-    <table style="width:100%;border-collapse:collapse;font-size:0.95em;">
-        <thead style="background:#F0F0F0;font-weight:600;">
-            {header}
-        </thead>
-        <tbody>
-            {rows_html if rows_html else "<tr><td colspan='6' style='padding:20px;text-align:center;color:#999;'>No matching ingredients.</td></tr>"}
-        </tbody>
-    </table>
-    """
-    st.markdown(table_html, unsafe_allow_html=True)
-
-    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
     btn_col1, btn_col2, _ = st.columns([1, 1, 3])
     with btn_col1:
         st.button("Request Extra Stock", type="primary")
@@ -128,41 +110,22 @@ with tab_expiring:
     if expiring_df.empty:
         st.info("No ingredients expiring within the next 14 days.")
     else:
-        header_exp = (
-            "<tr>"
-            "<th style='text-align:left;padding:10px 12px;'>Ingredient</th>"
-            "<th style='text-align:right;padding:10px 12px;'>Qty</th>"
-            "<th style='text-align:left;padding:10px 12px;'>Unit</th>"
-            "<th style='text-align:left;padding:10px 12px;'>Expiration Date</th>"
-            "<th style='text-align:center;padding:10px 12px;'>Status</th>"
-            "<th style='text-align:left;padding:10px 12px;'>Supplier</th>"
-            "</tr>"
+        exp_display = expiring_df.copy()
+        exp_display["Status"] = exp_display["status"].apply(
+            lambda s: status_text(s, s.lower())
         )
+        exp_display["Expiration Date"] = exp_display["expiration_date"].dt.strftime("%Y-%m-%d")
 
-        rows_exp = ""
-        for _, row in expiring_df.iterrows():
-            color_key = row["status"].lower()
-            badge = status_badge(row["status"], color_key)
-            exp_str = row["expiration_date"].strftime("%Y-%m-%d")
-            rows_exp += (
-                f"<tr>"
-                f"<td style='padding:10px 12px;'>{row['ingredient_name']}</td>"
-                f"<td style='padding:10px 12px;text-align:right;'>{row['quantity']}</td>"
-                f"<td style='padding:10px 12px;'>{row['unit']}</td>"
-                f"<td style='padding:10px 12px;'>{exp_str}</td>"
-                f"<td style='padding:10px 12px;text-align:center;'>{badge}</td>"
-                f"<td style='padding:10px 12px;'>{row['supplier_name']}</td>"
-                f"</tr>"
-            )
-
-        table_exp_html = f"""
-        <table style="width:100%;border-collapse:collapse;font-size:0.95em;">
-            <thead style="background:#F0F0F0;font-weight:600;">
-                {header_exp}
-            </thead>
-            <tbody>
-                {rows_exp}
-            </tbody>
-        </table>
-        """
-        st.markdown(table_exp_html, unsafe_allow_html=True)
+        st.dataframe(
+            exp_display[["ingredient_name", "quantity", "unit", "Expiration Date", "Status", "supplier_name"]],
+            column_config={
+                "ingredient_name": st.column_config.TextColumn("Ingredient"),
+                "quantity": st.column_config.NumberColumn("Qty"),
+                "unit": st.column_config.TextColumn("Unit"),
+                "Expiration Date": st.column_config.TextColumn("Expiration Date"),
+                "Status": st.column_config.TextColumn("Status"),
+                "supplier_name": st.column_config.TextColumn("Supplier"),
+            },
+            hide_index=True,
+            use_container_width=True,
+        )

@@ -3,9 +3,8 @@ logger = logging.getLogger(__name__)
 
 import streamlit as st
 import requests
-import pandas as pd
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_badge, API_BASE
+from modules.style import inject_custom_css, status_text, API_BASE
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -101,7 +100,7 @@ else:
         cols[0].markdown(f"**#{oid}**")
         cols[1].markdown(f"Table {table_id}")
         cols[2].markdown(item_names)
-        cols[3].markdown(status_badge(label, color), unsafe_allow_html=True)
+        cols[3].write(status_text(label, color))
 
         with cols[4]:
             if status_key == "open":
@@ -139,7 +138,7 @@ else:
         cols = st.columns([3, 4, 1.5, 2])
         cols[0].markdown(f"**{item.get('item_name', '—')}**")
         cols[1].markdown(item.get("description", ""))
-        cols[2].markdown(f"${item.get('price', 0):.2f}")
+        cols[2].markdown(f"${float(item.get('price', 0)):.2f}")
 
         with cols[3]:
             if avail:
@@ -156,7 +155,4 @@ else:
                     except requests.RequestException:
                         st.error("Failed to update item.")
             else:
-                st.markdown(
-                    status_badge("Unavailable", "red"),
-                    unsafe_allow_html=True,
-                )
+                st.write(status_text("Unavailable", "red"))

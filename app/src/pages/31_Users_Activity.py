@@ -5,7 +5,7 @@ import streamlit as st
 import requests
 import pandas as pd
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_badge, API_BASE
+from modules.style import inject_custom_css, status_text, API_BASE
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -42,40 +42,18 @@ st.subheader("User Accounts")
 if not users:
     st.warning("No users found.")
 else:
-    header = (
-        "<tr>"
-        "<th style='text-align:left;padding:10px 12px;'>Name</th>"
-        "<th style='text-align:left;padding:10px 12px;'>Role</th>"
-        "<th style='text-align:center;padding:10px 12px;'>Status</th>"
-        "</tr>"
-    )
-
-    rows_html = ""
+    user_rows = []
     for u in users:
         full_name = u.get("name", f"{u.get('first_name', '')} {u.get('last_name', '')}".strip())
         role_name = role_map.get(u.get("role_id"), "Unknown")
-        badge = status_badge("Active", "active")
-        rows_html += (
-            f"<tr>"
-            f"<td style='padding:10px 12px;'>{full_name}</td>"
-            f"<td style='padding:10px 12px;'>{role_name}</td>"
-            f"<td style='padding:10px 12px;text-align:center;'>{badge}</td>"
-            f"</tr>"
-        )
+        user_rows.append({
+            "Name": full_name,
+            "Role": role_name,
+            "Status": status_text("Active", "active"),
+        })
 
-    table_html = f"""
-    <table style="width:100%;border-collapse:collapse;font-size:0.95em;">
-        <thead style="background:#F0F0F0;font-weight:600;">
-            {header}
-        </thead>
-        <tbody>
-            {rows_html}
-        </tbody>
-    </table>
-    """
-    st.markdown(table_html, unsafe_allow_html=True)
-
-st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+    users_df = pd.DataFrame(user_rows)
+    st.dataframe(users_df, use_container_width=True, hide_index=True)
 
 # ---------------------------------------------------------------------------
 # Section 2: Recent Activity Log
@@ -106,8 +84,6 @@ else:
         }
     )
     st.dataframe(display_df, use_container_width=True, hide_index=True)
-
-st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # Section 3: Modify User
