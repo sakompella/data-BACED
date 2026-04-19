@@ -5,6 +5,7 @@ import streamlit as st
 import requests
 import pandas as pd
 import plotly.express as px
+import time
 from modules.nav import SideBarLinks
 from modules.style import inject_custom_css, status_text, API_BASE
 
@@ -12,7 +13,7 @@ st.set_page_config(layout="wide")
 SideBarLinks()
 inject_custom_css()
 
-st.title("System & Data")
+st.title("System & Data Management")
 
 # ---------------------------------------------------------------------------
 # Helper: safe GET that returns (data, ok)
@@ -36,35 +37,39 @@ with left_col:
     # ---- Section 1: System Health -----------------------------------------
     st.subheader("System Health")
 
-    # API Status
+    # Measure API response time
+    start = time.time()
     try:
         r = requests.get(f"{API_BASE}/", timeout=5)
         api_online = r.status_code == 200
+        response_ms = int((time.time() - start) * 1000)
     except requests.RequestException:
         api_online = False
+        response_ms = 0
 
     users_data, _ = safe_get(f"{API_BASE}/user/users")
     orders_data, _ = safe_get(f"{API_BASE}/ord/kitchen_orders")
     menu_data, _ = safe_get(f"{API_BASE}/menu/menu_items")
     ingredients_data, _ = safe_get(f"{API_BASE}/inv/ingredients")
 
-    health_df = pd.DataFrame({
-        "Metric": ["API Status", "Total Users", "Total Orders", "Menu Items", "Ingredients"],
-        "Value": [
-            "Online" if api_online else "Down",
-            str(len(users_data)),
-            str(len(orders_data)),
-            str(len(menu_data)),
-            str(len(ingredients_data)),
-        ],
-        "Status": [
-            status_text("Online", "green") if api_online else status_text("Down", "red"),
-            status_text("OK", "green"),
-            status_text("OK", "green"),
-            status_text("OK", "green"),
-            status_text("OK", "green"),
-        ],
-    })
+    health_rows = [
+        {"Metric": "API Status",
+         "Value": "Online" if api_online else "Down",
+         "Status": status_text("OK", "green") if api_online else status_text("Down", "red")},
+        {"Metric": "Response Time",
+         "Value": f"{response_ms}ms",
+         "Status": status_text("OK", "green") if response_ms < 500 else status_text("Warning", "amber")},
+        {"Metric": "Database",
+         "Value": f"{len(users_data)} users, {len(orders_data)} orders",
+         "Status": status_text("OK", "green")},
+        {"Metric": "Menu Items",
+         "Value": str(len(menu_data)),
+         "Status": status_text("OK", "green")},
+        {"Metric": "Ingredients",
+         "Value": str(len(ingredients_data)),
+         "Status": status_text("OK", "green")},
+    ]
+    health_df = pd.DataFrame(health_rows)
 
     st.dataframe(health_df, use_container_width=True, hide_index=True)
 

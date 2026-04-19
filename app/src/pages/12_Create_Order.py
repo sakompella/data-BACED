@@ -60,6 +60,7 @@ with col_left:
             card_left, card_right = st.columns([3, 1])
             with card_left:
                 st.markdown(f"**{item['item_name']}**")
+                st.caption(item.get('description', ''))
                 st.markdown(f"${float(item['price']):.2f}")
                 badge_color = "green" if is_available else "amber"
                 badge_label = "Available" if is_available else "Unavailable"
