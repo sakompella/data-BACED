@@ -34,6 +34,9 @@ def time_ago(created_at) -> str:
                 created_at = datetime.fromisoformat(created_at)
             except ValueError:
                 return ""
+    # Ensure both are naive for subtraction (API returns timezone-aware dates)
+    if created_at.tzinfo is not None:
+        created_at = created_at.replace(tzinfo=None)
     delta = datetime.now() - created_at
     total_seconds = int(delta.total_seconds())
     if total_seconds < 60:
