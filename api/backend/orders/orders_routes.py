@@ -28,7 +28,8 @@ def get_all_kitchen_orders():
         return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
-# ====================================================================================================
+
+# ============================================================
 
 @orders.route("/kitchen_orders", methods=["POST"])
 def add_kitchen_order():
@@ -61,9 +62,8 @@ def add_kitchen_order():
         return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
-        
 
-# ====================================================================================================
+# ============================================================
 
 @orders.route("/kitchen_orders/<int:order_id>", methods=["PUT"])
 def update_order(order_id):
@@ -94,9 +94,8 @@ def update_order(order_id):
         return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
-        
 
-# ====================================================================================================
+# ============================================================
 
 @orders.route("/kitchen_orders/<int:order_id>", methods=["DELETE"])
 def delete_order(order_id):
@@ -143,7 +142,7 @@ def get_order_items(order_id):
     finally:
         cursor.close()
 
-# ====================================================================================================
+# ============================================================
 
 @orders.route("/order_items", methods=["POST"])
 def add_order_item():
@@ -175,7 +174,7 @@ def add_order_item():
     finally:
         cursor.close()
 
-# ====================================================================================================
+# ============================================================
 
 @orders.route("/order_items/<int:order_item_id>", methods=["PUT"])
 def update_order_item(order_item_id):
@@ -208,7 +207,7 @@ def update_order_item(order_item_id):
     finally:
         cursor.close()
 
-# ====================================================================================================
+# ============================================================
 @orders.route("/order_items/<int:order_item_id>", methods=["DELETE"])
 def delete_order_item(order_item_id):
     cursor = get_db().cursor(dictionary=True)
