@@ -27,4 +27,4 @@ if st.button('Suppliers',
 if st.button('Demand Planning',
              type='primary',
              use_container_width=True):
-    st.switch_page('pages/23_Demand_Planning.py')
+    st.switch_page('pages/24_Demand_Planning.py')

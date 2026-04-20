@@ -60,7 +60,7 @@ def suppliers_nav():
     st.sidebar.page_link('pages/23_Suppliers.py', label='Suppliers', icon="🚛")
 
 def demand_planning_nav():
-    st.sidebar.page_link("pages/23_Demand_Planning.py", label="Demand Planning", icon="📉")
+    st.sidebar.page_link("pages/24_Demand_Planning.py", label="Demand Planning", icon="📉")
 
 
 # ---- Role: Administrator (Priya) --------------------------------------------
