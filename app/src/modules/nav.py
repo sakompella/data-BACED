@@ -83,6 +83,7 @@ def SideBarLinks(show_home=False):
             chef_home_nav()
             inventory_nav()
             order_management_nav()
+            menu_management_nav()
 
         if st.session_state["role"] == "waiter":
             waiter_home_nav()
