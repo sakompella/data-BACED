@@ -80,9 +80,9 @@ with tab_stock:
 
     def color_status(val):
         colors = {
-            "Low": "background-color: #E53836; color: black",
-            "Expiring": "background-color: #EDA321; color: black",
-            "OK": "background-color: #2EB859; color: black",
+            "Low": "background-color: #E53836; color: white",
+            "Expiring": "background-color: #FFD600; color: black",
+            "OK": "background-color: #4CAF50; color: black",
         }
         return colors.get(val, "")
 
