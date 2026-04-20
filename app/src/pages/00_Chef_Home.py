@@ -19,3 +19,10 @@ if st.button('Manage Orders',
              type='primary',
              use_container_width=True):
     st.switch_page('pages/02_Order_Management.py')
+
+if st.button('Manage Menu', 
+             type='primary',
+             use_container_width=True):
+    st.switch_page('pages/03_Menu_Management.py')
+
+
