@@ -126,6 +126,20 @@ with tab_edit:
                     st.warning('Item name is blank')
                 elif save_menu_item({'item_name': edit_name.strip(), 'description': edit_desc.strip(),
                             'price': edit_price, 'availability_status': edit_avail}, menu_item_id=item_id):
+                    if edit_avail == "unavailable" and item.get("availability_status") == "available":
+                        try:
+                            users_resp = requests.get(f"{API_BASE}/user/users", params={"role_id": 1})
+                            if users_resp.status_code == 200:
+                                for user in users_resp.json():
+                                    requests.post(
+                                        f"{API_BASE}/menu/notifications",
+                                        json={
+                                            "user_id": user["user_id"],
+                                            "message": f"{edit_name.strip()} is now unavailable",
+                                        },
+                                    )
+                        except requests.RequestException:
+                            logger.error("Failed to send notifications")
                     st.success("Menu item updated")
                     st.rerun()
                 else:

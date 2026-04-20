@@ -39,6 +39,11 @@ def current_orders_nav():
 def create_order_nav():
     st.sidebar.page_link("pages/12_Create_Order.py", label="Create Order", icon="➕")
 
+def notifications_nav():
+    st.sidebar.page_link("pages/13_Notifications.py", label="Notifications", icon="📣")
+
+    
+
 
 # ---- Role: Analyst (Charles) ------------------------------------------------
 
@@ -95,6 +100,7 @@ def SideBarLinks(show_home=False):
             waiter_home_nav()
             current_orders_nav()
             create_order_nav()
+            notifications_nav()
 
         if st.session_state["role"] == "analyst":
             analyst_home_nav()
