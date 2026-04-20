@@ -10,12 +10,12 @@ SideBarLinks()
 st.title(f"Welcome, {st.session_state['first_name']}.")
 st.write('### What would you like to do today?')
 
-if st.button('Users & Activity',
+if st.button('View My Orders',
              type='primary',
              use_container_width=True):
-    st.switch_page('pages/31_Users_Activity.py')
+    st.switch_page('pages/waiter/11_Current_Orders.py')
 
-if st.button('System & Data',
+if st.button('Create New Order',
              type='primary',
              use_container_width=True):
-    st.switch_page('pages/32_System_Data.py')
+    st.switch_page('pages/waiter/12_Create_Order.py')
