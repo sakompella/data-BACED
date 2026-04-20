@@ -59,6 +59,9 @@ def ingredients_nav():
 def suppliers_nav():
     st.sidebar.page_link('pages/23_Suppliers.py', label='Suppliers', icon="🚛")
 
+def demand_planning_nav():
+    st.sidebar.page_link("pages/23_Demand_Planning.py", label="Demand Planning", icon="📉")
+
 
 # ---- Role: Administrator (Priya) --------------------------------------------
 
@@ -110,6 +113,7 @@ def SideBarLinks(show_home=False):
             sales_nav()
             ingredients_nav()
             suppliers_nav()
+            demand_planning_nav()
 
         if st.session_state["role"] == "administrator":
             admin_home_nav()
