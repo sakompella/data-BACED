@@ -23,7 +23,9 @@ def order_management_nav():
     st.sidebar.page_link("pages/02_Order_Management.py", label="Orders", icon="📋")
 
 def menu_management_nav():
-    st.sidebar.page_link('page/03_Menu_Management.py', label="Menu Items", icon="")
+    st.sidebar.page_link("pages/03_Menu_Management.py", label="Menu_items", icon="📋")
+    
+
 
 
 # ---- Role: Waiter (Maya) ----------------------------------------------------
@@ -61,6 +63,10 @@ def users_activity_nav():
 def system_data_nav():
     st.sidebar.page_link("pages/32_System_Data.py", label="System & Data", icon="⚙️")
 
+def menu_configuration_nav():
+    st.sidebar.page_link("pages/33_Menu_Configuration.py",label="Menu", icon="🍕")
+
+
 
 # ---- Sidebar assembly -------------------------------------------------------
 
@@ -68,7 +74,7 @@ def SideBarLinks(show_home=False):
     """
     Renders sidebar navigation links based on the logged-in user's role.
     """
-    st.sidebar.image("assets/logo.png", width=150)
+    st.sidebar.image("assets/logo.png", width=275)
 
     if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
@@ -83,6 +89,7 @@ def SideBarLinks(show_home=False):
             chef_home_nav()
             inventory_nav()
             order_management_nav()
+            menu_management_nav()
 
         if st.session_state["role"] == "waiter":
             waiter_home_nav()
@@ -98,6 +105,7 @@ def SideBarLinks(show_home=False):
             admin_home_nav()
             users_activity_nav()
             system_data_nav()
+            menu_configuration_nav()
 
     about_page_nav()
 
