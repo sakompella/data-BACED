@@ -88,6 +88,85 @@ else:
 # ---------------------------------------------------------------------------
 # Section 3: Modify User
 # ---------------------------------------------------------------------------
+with st.expander("Create User..."):
+    st.subheader("Create User")
+    col_name, col_email = st.columns(2)
+    with col_name:
+        new_user_name = st.text_input("Name", key="create_user_name")
+    with col_email:
+        new_user_email = st.text_input("Email (optional)", key="create_user_email")
+
+    role_name_to_id = {r["role_name"]: r["role_id"] for r in roles}
+    create_role_name = st.selectbox(
+        "Role for New User",
+        options=list(role_name_to_id.keys()),
+        key="create_user_role",
+    )
+
+    if st.button("Create User", type="primary", key="btn_create_user"):
+        cleaned_name = new_user_name.strip()
+        if not cleaned_name:
+            st.error("Name cannot be blank.")
+        else:
+            payload = {
+                "name": cleaned_name,
+                "role_id": role_name_to_id[create_role_name],
+            }
+            if new_user_email.strip():
+                payload["email"] = new_user_email.strip()
+            actor_id = st.session_state.get("user_id")
+            if actor_id:
+                payload["actor_id"] = actor_id
+            try:
+                response = requests.post(f"{API_BASE}/user/users", json=payload)
+                response.raise_for_status()
+                st.success(f"User created successfully (ID {response.json().get('user_id')}).")
+                st.rerun()
+            except requests.RequestException as exc:
+                st.error(f"Failed to create user: {exc}")
+
+
+with st.expander("Update Role Definition..."):
+    st.subheader("Update Role")
+    role_options = {f"{r['role_name']} (ID {r['role_id']})": r for r in roles}
+    selected_role_label = st.selectbox(
+        "Select Role",
+        options=list(role_options.keys()),
+        key="update_role_select",
+    )
+    selected_role = role_options[selected_role_label]
+
+    upd_role_name = st.text_input(
+        "Role Name",
+        value=selected_role.get("role_name", ""),
+        key="update_role_name",
+    )
+    upd_role_description = st.text_area(
+        "Description",
+        value=selected_role.get("description", "") or "",
+        key="update_role_description",
+    )
+
+    if st.button("Update Role", type="primary", key="btn_update_role"):
+        payload = {
+            "role_name": upd_role_name.strip(),
+            "description": upd_role_description.strip(),
+        }
+        actor_id = st.session_state.get("user_id")
+        if actor_id:
+            payload["actor_id"] = actor_id
+        try:
+            response = requests.put(
+                f"{API_BASE}/user/roles/{selected_role['role_id']}",
+                json=payload,
+            )
+            response.raise_for_status()
+            st.success("Role updated successfully.")
+            st.rerun()
+        except requests.RequestException as exc:
+            st.error(f"Failed to update role: {exc}")
+
+
 with st.expander("Modify Users..."):
     st.subheader("Modify User")
 

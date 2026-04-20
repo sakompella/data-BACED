@@ -53,7 +53,7 @@ def time_ago(created_at) -> str:
     return f"{hours} hour{'s' if hours != 1 else ''} ago"
 
 
-tab_orders, tab_menu = st.tabs(["Current Orders", "Menu Items"])
+tab_orders, tab_menu, tab_item_tools = st.tabs(["Current Orders", "Menu Items", "Order Item Tools"])
 
 # ── Current Orders tab ──────────────────────────────────────────────────────
 
@@ -145,3 +145,95 @@ with tab_menu:
         available = [c for c in display_cols if c in df.columns]
         df = df[available].rename(columns=display_cols)
         st.dataframe(df, use_container_width=True, hide_index=True)
+
+# ── Order Item Tools tab ────────────────────────────────────────────────────
+
+with tab_item_tools:
+    st.subheader("Order Item Route Tools")
+    st.caption("Use these controls to update or remove a specific order item by ID.")
+
+    order_item_id = st.number_input(
+        "Order Item ID",
+        min_value=1,
+        step=1,
+        value=1,
+        key="order_item_tool_id",
+    )
+
+    try:
+        menu_resp = requests.get(f"{API_BASE}/menu/menu_items")
+        menu_resp.raise_for_status()
+        menu_items = menu_resp.json()
+    except requests.RequestException:
+        menu_items = []
+
+    menu_options = {
+        f"{item['item_name']} (ID {item['menu_item_id']})": item["menu_item_id"]
+        for item in menu_items
+    }
+
+    if menu_options:
+        selected_menu_label = st.selectbox(
+            "Replacement Menu Item",
+            options=list(menu_options.keys()),
+            key="order_item_tool_menu",
+        )
+        selected_menu_item_id = int(menu_options[selected_menu_label])
+    else:
+        selected_menu_item_id = None
+        st.info("Menu options unavailable; update can still change special notes.")
+
+    special_notes = st.text_input(
+        "Special Notes",
+        key="order_item_tool_notes",
+        placeholder="Optional notes for kitchen",
+    )
+
+    col_update, col_delete = st.columns(2)
+
+    with col_update:
+        if st.button("Update Order Item", type="primary", use_container_width=True):
+            payload = {"special_notes": special_notes}
+            if selected_menu_item_id is not None:
+                payload["menu_item_id"] = selected_menu_item_id
+            if waiter_id:
+                payload["actor_id"] = waiter_id
+            try:
+                response = requests.put(
+                    f"{API_BASE}/ord/order_items/{int(order_item_id)}",
+                    json=payload,
+                )
+                if response.status_code == 404:
+                    st.warning("Order item not found.")
+                else:
+                    response.raise_for_status()
+                    st.success(f"Order item #{int(order_item_id)} updated.")
+            except requests.RequestException as exc:
+                st.error(f"Failed to update order item: {exc}")
+
+    with col_delete:
+        if st.button("Delete Order Item", use_container_width=True):
+            st.session_state["confirm_delete_order_item_id"] = int(order_item_id)
+
+        if st.session_state.get("confirm_delete_order_item_id") == int(order_item_id):
+            st.warning(f"Delete order item #{int(order_item_id)}?")
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("Yes, delete order item", key="confirm_delete_order_item", use_container_width=True):
+                    params = {"actor_id": waiter_id} if waiter_id else None
+                    try:
+                        response = requests.delete(
+                            f"{API_BASE}/ord/order_items/{int(order_item_id)}",
+                            params=params,
+                        )
+                        if response.status_code == 404:
+                            st.warning("Order item not found.")
+                        else:
+                            response.raise_for_status()
+                            st.success(f"Order item #{int(order_item_id)} deleted.")
+                        st.session_state.pop("confirm_delete_order_item_id", None)
+                    except requests.RequestException as exc:
+                        st.error(f"Failed to delete order item: {exc}")
+            with c2:
+                if st.button("Cancel", key="cancel_delete_order_item", use_container_width=True):
+                    st.session_state.pop("confirm_delete_order_item_id", None)
