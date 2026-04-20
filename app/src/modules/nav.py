@@ -14,49 +14,49 @@ def about_page_nav():
 # ---- Role: Chef (Armando) ---------------------------------------------------
 
 def chef_home_nav():
-    st.sidebar.page_link("pages/chef/00_Chef_Home.py", label="Chef Home", icon="👨‍🍳")
+    st.sidebar.page_link("pages/00_Chef_Home.py", label="Chef Home", icon="👨‍🍳")
 
 def inventory_nav():
-    st.sidebar.page_link("pages/chef/01_Inventory.py", label="Inventory & Stock", icon="📦")
+    st.sidebar.page_link("pages/01_Inventory.py", label="Inventory & Stock", icon="📦")
 
 def order_management_nav():
-    st.sidebar.page_link("pages/chef/02_Order_Management.py", label="Orders", icon="📋")
+    st.sidebar.page_link("pages/02_Order_Management.py", label="Orders", icon="📋")
 
 
 # ---- Role: Waiter (Maya) ----------------------------------------------------
 
 def waiter_home_nav():
-    st.sidebar.page_link("pages/waiter/10_Waiter_Home.py", label="Waiter Home", icon="🍽️")
+    st.sidebar.page_link("pages/10_Waiter_Home.py", label="Waiter Home", icon="🍽️")
 
 def current_orders_nav():
-    st.sidebar.page_link("pages/waiter/11_Current_Orders.py", label="My Orders", icon="🧾")
+    st.sidebar.page_link("pages/11_Current_Orders.py", label="My Orders", icon="🧾")
 
 def create_order_nav():
-    st.sidebar.page_link("pages/waiter/12_Create_Order.py", label="Create Order", icon="➕")
+    st.sidebar.page_link("pages/12_Create_Order.py", label="Create Order", icon="➕")
 
 
 # ---- Role: Analyst (Charles) ------------------------------------------------
 
 def analyst_home_nav():
-    st.sidebar.page_link("pages/analyst/20_Analyst_Home.py", label="Analyst Home", icon="📊")
+    st.sidebar.page_link("pages/20_Analyst_Home.py", label="Analyst Home", icon="📊")
 
 def usage_analytics_nav():
-    st.sidebar.page_link("pages/analyst/21_Usage_Analytics.py", label="Analytics", icon="📈")
+    st.sidebar.page_link("pages/21_Usage_Analytics.py", label="Analytics", icon="📈")
 
 def forecasting_nav():
-    st.sidebar.page_link("pages/analyst/22_Forecasting.py", label="Forecasting & Suppliers", icon="🔮")
+    st.sidebar.page_link("pages/22_Forecasting.py", label="Forecasting & Suppliers", icon="🔮")
 
 
 # ---- Role: Administrator (Priya) --------------------------------------------
 
 def admin_home_nav():
-    st.sidebar.page_link("pages/admin/30_Admin_Home.py", label="Admin Home", icon="🖥️")
+    st.sidebar.page_link("pages/30_Admin_Home.py", label="Admin Home", icon="🖥️")
 
 def users_activity_nav():
-    st.sidebar.page_link("pages/admin/31_Users_Activity.py", label="Users & Activity", icon="👥")
+    st.sidebar.page_link("pages/31_Users_Activity.py", label="Users & Activity", icon="👥")
 
 def system_data_nav():
-    st.sidebar.page_link("pages/admin/32_System_Data.py", label="System & Data", icon="⚙️")
+    st.sidebar.page_link("pages/32_System_Data.py", label="System & Data", icon="⚙️")
 
 
 # ---- Sidebar assembly -------------------------------------------------------
@@ -100,6 +100,6 @@ def SideBarLinks(show_home=False):
 
     if st.session_state["authenticated"]:
         if st.sidebar.button("Logout"):
-            for key in ("role", "authenticated", "first_name", "user_id"):
+            for key in ("role", "authenticated", "first_name", "user_id", "order_cart"):
                 st.session_state.pop(key, None)
             st.switch_page("Home.py")
