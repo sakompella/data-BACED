@@ -13,6 +13,11 @@ inject_custom_css()
 
 st.title("Create New Order")
 
+waiter_id = st.session_state.get("user_id")
+if waiter_id is None:
+    st.error("No waiter session is active. Return to Home and choose a user.")
+    st.stop()
+
 # ---------------------------------------------------------------------------
 # Session state: cart
 # ---------------------------------------------------------------------------
@@ -119,7 +124,7 @@ with col_right:
                     json={
                         "table_id": table_number,
                         "status": "open",
-                        "waiter_id": 1,
+                        "waiter_id": waiter_id,
                         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         "notes": notes if notes else None,
                     },

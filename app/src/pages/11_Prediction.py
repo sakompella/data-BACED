@@ -5,6 +5,7 @@ logger = logging.getLogger(__name__)
 import streamlit as st
 from modules.nav import SideBarLinks
 import requests
+from modules.style import API_BASE
 
 st.set_page_config(layout="wide")
 
@@ -28,6 +29,10 @@ with col2:
 # prediction function via the REST API
 if st.button("Calculate Prediction", type="primary", use_container_width=True):
     logger.info(f"var_01 = {var_01}, var_02 = {var_02}")
-    results = requests.get(f"http://web-api:4000/prediction/{var_01}/{var_02}")
-    json_results = results.json()
-    st.dataframe(json_results)
+    try:
+        results = requests.get(f"{API_BASE}/prediction/{var_01}/{var_02}")
+        results.raise_for_status()
+    except requests.RequestException as exc:
+        st.error(f"Failed to fetch prediction: {exc}")
+    else:
+        st.json(results.json())

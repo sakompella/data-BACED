@@ -120,14 +120,18 @@ with st.expander("Modify Users..."):
         # Reverse lookup: role_name -> role_id
         role_name_to_id = {r["role_name"]: r["role_id"] for r in roles}
         new_role_id = role_name_to_id[new_role_name]
+        updated_name = f"{new_first.strip()} {new_last.strip()}".strip()
+        normalized_email = new_email.strip() or None
 
         btn_col1, btn_col2, _ = st.columns([1, 1, 3])
         with btn_col1:
             if st.button("Update User", type="primary"):
+                if not updated_name:
+                    st.error("Name cannot be blank.")
+                    st.stop()
                 payload = {
-                    "first_name": new_first,
-                    "last_name": new_last,
-                    "email": new_email,
+                    "name": updated_name,
+                    "email": normalized_email,
                     "role_id": new_role_id,
                 }
                 try:
@@ -143,9 +147,9 @@ with st.expander("Modify Users..."):
 
         with btn_col2:
             if st.button("Delete User", type="secondary"):
-                st.session_state["confirm_delete"] = True
+                st.session_state["confirm_delete_user_id"] = selected_user["user_id"]
 
-            if st.session_state.get("confirm_delete"):
+            if st.session_state.get("confirm_delete_user_id") == selected_user["user_id"]:
                 st.warning(
                     f"Are you sure you want to delete "
                     f"**{selected_user.get('name', current_name)}**?"
@@ -159,11 +163,11 @@ with st.expander("Modify Users..."):
                             )
                             resp.raise_for_status()
                             st.success("User deleted.")
-                            st.session_state.pop("confirm_delete", None)
+                            st.session_state.pop("confirm_delete_user_id", None)
                             st.rerun()
                         except requests.RequestException as e:
                             st.error(f"Failed to delete user: {e}")
                 with c2:
                     if st.button("Cancel"):
-                        st.session_state.pop("confirm_delete", None)
+                        st.session_state.pop("confirm_delete_user_id", None)
                         st.rerun()
