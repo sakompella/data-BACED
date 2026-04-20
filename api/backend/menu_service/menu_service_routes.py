@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
+from backend.api_utils import db_error_response, require_json_object
 from backend.db_connection import get_db
 from mysql.connector import Error
 
@@ -31,18 +32,22 @@ def get_all_menu_items():
         return jsonify(menu_items), 200
     except Error as e:
         current_app.logger.error(f'Database error in get_all_menu_items: {e}')
-        return jsonify({"error": str(e)}), 500
+        return db_error_response(e)
     finally:
         cursor.close()
 
 
 @menu_service.route("/menu_items", methods=["POST"])
 def create_menu_item():
-    cursor = get_db().cursor(dictionary=True)
+    cursor = None
     try:
         current_app.logger.info('POST /menu_items')
 
-        data = request.get_json()
+        data, error_response = require_json_object()
+        if error_response:
+            return error_response
+
+        cursor = get_db().cursor(dictionary=True)
 
         required_fields = ["item_name", "price"]
         for field in required_fields:
@@ -69,18 +74,23 @@ def create_menu_item():
         return jsonify({"message": "Menu Item created successfully", "menu_item_id": cursor.lastrowid}), 201
     except Error as e:
         current_app.logger.error(f'Database error in create_menu_item: {e}')
-        return jsonify({"error": str(e)}), 500
+        return db_error_response(e)
     finally:
-        cursor.close()
+        if cursor is not None:
+            cursor.close()
 
 
 @menu_service.route("/menu_items/<int:menu_item_id>", methods=["PUT"])
 def update_menu_item(menu_item_id):
-    cursor = get_db().cursor(dictionary=True)
+    cursor = None
     try:
         current_app.logger.info(f'PUT /menu_items/{menu_item_id}')
 
-        data = request.get_json()
+        data, error_response = require_json_object()
+        if error_response:
+            return error_response
+
+        cursor = get_db().cursor(dictionary=True)
 
         cursor.execute("SELECT menu_item_id FROM menu_items WHERE menu_item_id = %s", (menu_item_id,))
         if not cursor.fetchone():
@@ -102,9 +112,10 @@ def update_menu_item(menu_item_id):
         return jsonify({"message": "Menu Item updated successfully"}), 200
     except Error as e:
         current_app.logger.error(f'Database error in update_menu_item: {e}')
-        return jsonify({"error": str(e)}), 500
+        return db_error_response(e)
     finally:
-        cursor.close()
+        if cursor is not None:
+            cursor.close()
 
 
 @menu_service.route("/menu_items/<int:menu_item_id>", methods=["DELETE"])
@@ -124,7 +135,7 @@ def delete_menu_item(menu_item_id):
         return jsonify({"message": "Menu Item deleted successfully"}), 200
     except Error as e:
         current_app.logger.error(f'Database error in delete_menu_item: {e}')
-        return jsonify({"error": str(e)}), 500
+        return db_error_response(e)
     finally:
         cursor.close()
 
@@ -149,8 +160,11 @@ def get_user_notifications(user_id):
         params = [user_id]
 
         if is_read is not None:
+            normalized = is_read.strip().lower()
+            if normalized not in {"true", "false", "1", "0"}:
+                return jsonify({"error": "is_read must be a boolean query parameter."}), 400
             query += " AND is_read = %s"
-            params.append(is_read)
+            params.append(normalized in {"true", "1"})
 
         cursor.execute(query, params)
         notification_list = cursor.fetchall()
@@ -159,18 +173,22 @@ def get_user_notifications(user_id):
         return jsonify(notification_list), 200
     except Error as e:
         current_app.logger.error(f'Database error in get_user_notifications: {e}')
-        return jsonify({"error": str(e)}), 500
+        return db_error_response(e)
     finally:
         cursor.close()
 
 
 @menu_service.route("/notifications", methods=["POST"])
 def create_notification():
-    cursor = get_db().cursor(dictionary=True)
+    cursor = None
     try:
         current_app.logger.info('POST /notifications')
 
-        data = request.get_json()
+        data, error_response = require_json_object()
+        if error_response:
+            return error_response
+
+        cursor = get_db().cursor(dictionary=True)
 
         required_fields = ["user_id", "message"]
         for field in required_fields:
@@ -192,18 +210,23 @@ def create_notification():
         return jsonify({"message": "Notification created successfully", "notification_id": cursor.lastrowid}), 201
     except Error as e:
         current_app.logger.error(f'Database error in create_notification: {e}')
-        return jsonify({"error": str(e)}), 500
+        return db_error_response(e)
     finally:
-        cursor.close()
+        if cursor is not None:
+            cursor.close()
 
 
 @menu_service.route("/notifications/<int:alert_id>", methods=["PUT"])
 def update_notification(alert_id):
-    cursor = get_db().cursor(dictionary=True)
+    cursor = None
     try:
         current_app.logger.info(f'PUT /notifications/{alert_id}')
 
-        data = request.get_json()
+        data, error_response = require_json_object()
+        if error_response:
+            return error_response
+
+        cursor = get_db().cursor(dictionary=True)
 
         cursor.execute("SELECT alert_id FROM notifications WHERE alert_id = %s", (alert_id,))
         if not cursor.fetchone():
@@ -225,6 +248,7 @@ def update_notification(alert_id):
         return jsonify({"message": "Notification updated successfully"}), 200
     except Error as e:
         current_app.logger.error(f'Database error in update_notification: {e}')
-        return jsonify({"error": str(e)}), 500
+        return db_error_response(e)
     finally:
-        cursor.close()
+        if cursor is not None:
+            cursor.close()
