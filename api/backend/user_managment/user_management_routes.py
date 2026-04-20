@@ -1,5 +1,4 @@
 from flask import Blueprint, jsonify, request, current_app
-from backend.api_utils import db_error_response, require_json_object
 from backend.db_connection import get_db
 from mysql.connector import Error
 
@@ -28,22 +27,18 @@ def get_all_users():
         return jsonify(user_list), 200
     except Error as e:
         current_app.logger.error(f'Database error in get_all_users: {e}')
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
 
 
 @user_management.route("/users", methods=["POST"])
 def create_user():
-    cursor = None
+    cursor = get_db().cursor(dictionary=True)
     try:
         current_app.logger.info('POST /user_management/users')
 
-        data, error_response = require_json_object()
-        if error_response:
-            return error_response
-
-        cursor = get_db().cursor(dictionary=True)
+        data = request.get_json()
 
         required_fields = ["name", "role_id"]
         for field in required_fields:
@@ -76,23 +71,18 @@ def create_user():
         return jsonify({"message": "User created successfully", "user_id": cursor.lastrowid}), 201
     except Error as e:
         current_app.logger.error(f'Database error in create_user: {e}')
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
-        if cursor is not None:
-            cursor.close()
+        cursor.close()
 
 
 @user_management.route("/users/<int:user_id>", methods=["PUT"])
 def update_user(user_id):
-    cursor = None
+    cursor = get_db().cursor(dictionary=True)
     try:
         current_app.logger.info(f'PUT /user_management/users/{user_id}')
 
-        data, error_response = require_json_object()
-        if error_response:
-            return error_response
-
-        cursor = get_db().cursor(dictionary=True)
+        data = request.get_json()
 
         cursor.execute("SELECT user_id FROM users WHERE user_id = %s", (user_id,))
         if not cursor.fetchone():
@@ -114,10 +104,9 @@ def update_user(user_id):
         return jsonify({"message": "User updated successfully"}), 200
     except Error as e:
         current_app.logger.error(f'Database error in update_user: {e}')
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
-        if cursor is not None:
-            cursor.close()
+        cursor.close()
 
 
 @user_management.route("/users/<int:user_id>", methods=["DELETE"])
@@ -137,7 +126,7 @@ def delete_user(user_id):
         return jsonify({"message": "User deleted successfully"}), 200
     except Error as e:
         current_app.logger.error(f'Database error in delete_user: {e}')
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
 
@@ -156,22 +145,18 @@ def get_all_roles():
         return jsonify(role_list), 200
     except Error as e:
         current_app.logger.error(f'Database error in get_all_roles: {e}')
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
 
 
 @user_management.route("/roles/<int:role_id>", methods=["PUT"])
 def update_role(role_id):
-    cursor = None
+    cursor = get_db().cursor(dictionary=True)
     try:
         current_app.logger.info(f'PUT /user_management/roles/{role_id}')
 
-        data, error_response = require_json_object()
-        if error_response:
-            return error_response
-
-        cursor = get_db().cursor(dictionary=True)
+        data = request.get_json()
 
         cursor.execute("SELECT role_id FROM roles WHERE role_id = %s", (role_id,))
         if not cursor.fetchone():
@@ -193,10 +178,9 @@ def update_role(role_id):
         return jsonify({"message": "Role updated successfully"}), 200
     except Error as e:
         current_app.logger.error(f'Database error in update_role: {e}')
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
-        if cursor is not None:
-            cursor.close()
+        cursor.close()
 
 
 
@@ -235,6 +219,6 @@ def get_activity_log():
         return jsonify(log_list), 200
     except Error as e:
         current_app.logger.error(f'Database error in get_activity_log: {e}')
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()

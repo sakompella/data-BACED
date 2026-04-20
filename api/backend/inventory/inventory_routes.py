@@ -1,5 +1,4 @@
-from flask import Blueprint, jsonify, current_app
-from backend.api_utils import db_error_response, require_json_object
+from flask import Blueprint, jsonify, request, current_app
 from backend.db_connection import get_db
 from mysql.connector import Error
 
@@ -28,7 +27,7 @@ def get_all_ingredients():
         return jsonify(results), 200
     except Error as e:
         current_app.logger.error(f"Error in get_all_ingredients: {e}")
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
 
@@ -36,12 +35,9 @@ def get_all_ingredients():
 # POST a new ingredient (Priya 5)
 @inventory.route("/ingredients", methods=["POST"])
 def add_ingredient():
-    cursor = None
+    cursor = get_db().cursor(dictionary=True)
     try:
-        data, error_response = require_json_object()
-        if error_response:
-            return error_response
-        cursor = get_db().cursor(dictionary=True)
+        data = request.get_json()
         current_app.logger.info(f"POST /ingredients with data: {data}")
 
         required_fields = ["ingredient_name", "supplier_id", "unit",
@@ -71,10 +67,9 @@ def add_ingredient():
                         "ingredient_id": cursor.lastrowid}), 201
     except Error as e:
         current_app.logger.error(f"Error in add_ingredient: {e}")
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
-        if cursor is not None:
-            cursor.close()
+        cursor.close()
 
 
 # GET a specific ingredient by ID (Armando 1 & 4, Priya 6)
@@ -95,8 +90,7 @@ def get_ingredient(ingredient_id):
 
         return jsonify(result), 200
     except Error as e:
-        current_app.logger.error(f"Error in get_ingredient: {e}")
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
 
@@ -104,12 +98,9 @@ def get_ingredient(ingredient_id):
 # PUT update an ingredient (Armando 2, Priya 5 & 6)
 @inventory.route("/ingredients/<int:ingredient_id>", methods=["PUT"])
 def update_ingredient(ingredient_id):
-    cursor = None
+    cursor = get_db().cursor(dictionary=True)
     try:
-        data, error_response = require_json_object()
-        if error_response:
-            return error_response
-        cursor = get_db().cursor(dictionary=True)
+        data = request.get_json()
         current_app.logger.info(f"PUT /ingredients/{ingredient_id} with data: {data}")
 
         cursor.execute("SELECT ingredient_id FROM ingredients WHERE ingredient_id = %s",
@@ -134,10 +125,9 @@ def update_ingredient(ingredient_id):
         return jsonify({"message": "Ingredient updated successfully"}), 200
     except Error as e:
         current_app.logger.error(f"Error in update_ingredient: {e}")
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
-        if cursor is not None:
-            cursor.close()
+        cursor.close()
 
 
 # DELETE an ingredient (Priya 5)
@@ -159,7 +149,7 @@ def delete_ingredient(ingredient_id):
         return jsonify({"message": "Ingredient deleted successfully"}), 200
     except Error as e:
         current_app.logger.error(f"Error in delete_ingredient: {e}")
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
 
@@ -184,7 +174,7 @@ def get_expected_usage():
         return jsonify(results), 200
     except Error as e:
         current_app.logger.error(f"Error in get_expected_usage: {e}")
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
 
@@ -192,12 +182,9 @@ def get_expected_usage():
 # POST a new expected usage entry (Charles 5)
 @inventory.route("/expected_usage", methods=["POST"])
 def add_expected_usage():
-    cursor = None
+    cursor = get_db().cursor(dictionary=True)
     try:
-        data, error_response = require_json_object()
-        if error_response:
-            return error_response
-        cursor = get_db().cursor(dictionary=True)
+        data = request.get_json()
         current_app.logger.info(f"POST /expected_usage with data: {data}")
 
         required_fields = ["ingredient_id", "expected_quantity",
@@ -222,10 +209,9 @@ def add_expected_usage():
                         "usage_id": cursor.lastrowid}), 201
     except Error as e:
         current_app.logger.error(f"Error in add_expected_usage: {e}")
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
-        if cursor is not None:
-            cursor.close()
+        cursor.close()
 
 
 # ============================================================
@@ -243,7 +229,7 @@ def get_all_suppliers():
         return jsonify(results), 200
     except Error as e:
         current_app.logger.error(f"Error in get_all_suppliers: {e}")
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
 
@@ -269,6 +255,6 @@ def get_supplier_prices():
         return jsonify(results), 200
     except Error as e:
         current_app.logger.error(f"Error in get_supplier_prices: {e}")
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
