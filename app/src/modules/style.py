@@ -34,5 +34,8 @@ def inject_custom_css():
         border: 1px solid #E0E0E0;
         border-radius: 8px;
     }
+    div[data-testid="stMetric"] {
+        margin-bottom: 8px;
+    }
     </style>
     """, unsafe_allow_html=True)
