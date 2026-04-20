@@ -140,6 +140,18 @@ def delete_user(user_id):
         if actor_id and int(actor_id) != user_id:
             log_activity(int(actor_id), "user_deleted", f"user_id={user_id}")
 
+        # Delete FK-dependent rows before removing the user.
+        cursor.execute("DELETE FROM activity_log WHERE user_id = %s", (user_id,))
+        cursor.execute("DELETE FROM notifications WHERE user_id = %s", (user_id,))
+        # order_items references kitchen_orders, so delete order_items first.
+        cursor.execute(
+            "DELETE oi FROM order_items oi "
+            "JOIN kitchen_orders ko ON oi.order_id = ko.order_id "
+            "WHERE ko.waiter_id = %s",
+            (user_id,),
+        )
+        cursor.execute("DELETE FROM kitchen_orders WHERE waiter_id = %s", (user_id,))
+
         cursor.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
         get_db().commit()
 
