@@ -103,12 +103,6 @@ with tab_stock:
         use_container_width=True,
     )
 
-    btn_col1, btn_col2, _ = st.columns([1, 1, 3])
-    with btn_col1:
-        st.button("Request Extra Stock", type="primary")
-    with btn_col2:
-        st.button("Confirm Delivery")
-
 # ---- Expiring Soon --------------------------------------------------------
 with tab_expiring:
     cutoff = now + timedelta(days=14)
@@ -139,3 +133,36 @@ with tab_expiring:
             hide_index=True,
             use_container_width=True,
         )
+
+st.divider()
+# -----------------------------------------------------------------------------
+#Stock Requests
+# -----------------------------------------------------------------------------
+
+st.subheader("Request Extra Stock")
+
+ingredient_map = {row['ingredient_name']: row for row in data}
+
+with st.form('stock_request_form', clear_on_submit=True):
+    col_ing, col_qty, col_btn = st.columns([3, 1, 1])
+    with col_ing:
+        selected_name = st.selectbox("Ingredient", options=sorted(ingredient_map.keys()), label_visibility='collapsed')
+    selected_ing = ingredient_map.get(selected_name, {})
+    unit = selected_ing.get('unit', "")
+    with col_qty:
+        request_qty = st.number_input(f"Qty ({unit})", min_value=1, step=1, label_visibility='collapsed')
+    with col_btn:
+        req_submitted = st.form_submit_button("Submit", type="primary",use_container_width=True)
+
+if req_submitted:
+    ing_id = selected_ing.get('ingredient_id')
+    try:
+        resp = requests.post(f"{API_BASE}/menu/notifications", json={'user_id': st.session_state.get('user_id'),
+                                                                     'message': f"Stock request: {request_qty} {unit} of {selected_name}",
+                                                                     })
+        if resp.status_code in (200, 201):
+            st.success(f"Stock request for **{selected_name}** ({request_qty} {unit}) submitted.")
+        else:
+            st.error("Failed to submit request.")
+    except requests.RequestException:
+        st.error("Failed to submit request.")
