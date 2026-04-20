@@ -47,3 +47,15 @@ To stop and remove the containers:
 ```bash
 docker compose down
 ```
+
+## Team Members
+
+- Darshan Balaji
+- Evan Blankenship
+- Aditya Kompella
+- Bianca Sellemi
+- Cade Walkush
+
+## Demo Video
+
+Coming soon
