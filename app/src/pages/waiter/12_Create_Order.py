@@ -117,8 +117,9 @@ with col_right:
             st.rerun()
     with btn_submit:
         if st.button("Submit Order", type="primary", use_container_width=True, disabled=len(cart) == 0):
+            new_order_id = None
             try:
-                # Create the kitchen order
+                # Create the kitchen order header
                 order_resp = requests.post(
                     f"{API_BASE}/ord/kitchen_orders",
                     json={
@@ -132,7 +133,7 @@ with col_right:
                 order_resp.raise_for_status()
                 new_order_id = order_resp.json().get("order_id")
 
-                # Add each cart item as an order_item
+                # Add each cart item — rollback the order if any insert fails
                 for cart_item in cart:
                     for _ in range(cart_item["quantity"]):
                         item_resp = requests.post(
@@ -149,4 +150,10 @@ with col_right:
                 st.success(f"Order #{new_order_id} submitted successfully!")
             except requests.RequestException as e:
                 logger.error(f"Failed to submit order: {e}")
-                st.error("Failed to submit order. Please try again.")
+                # Compensating delete: remove the partial order (cascades to items)
+                if new_order_id is not None:
+                    try:
+                        requests.delete(f"{API_BASE}/ord/kitchen_orders/{new_order_id}")
+                    except requests.RequestException:
+                        logger.error(f"Failed to rollback order #{new_order_id}")
+                st.error("Failed to submit order. Cart preserved — please try again.")
