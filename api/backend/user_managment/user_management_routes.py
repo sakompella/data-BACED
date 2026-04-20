@@ -130,8 +130,6 @@ def delete_user(user_id):
     finally:
         cursor.close()
 
-
-
 @user_management.route("/roles", methods=["GET"])
 def get_all_roles():
     cursor = get_db().cursor(dictionary=True)
@@ -181,8 +179,6 @@ def update_role(role_id):
         return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
-
-
 
 
 @user_management.route("/activity_log", methods=["GET"])
