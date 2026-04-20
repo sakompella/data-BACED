@@ -19,3 +19,8 @@ if st.button('Create New Order',
              type='primary',
              use_container_width=True):
     st.switch_page('pages/12_Create_Order.py')
+    
+if st.button('Notifications',
+             type='primary',
+             use_container_width=True):
+    st.switch_page('pages/13_Notifications.py')
