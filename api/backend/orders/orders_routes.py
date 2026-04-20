@@ -1,5 +1,5 @@
-from flask import Blueprint, jsonify, current_app
-from backend.db_connection import get_db
+from flask import Blueprint, jsonify, request, current_app
+from backend.db_connection import get_db, log_activity
 from mysql.connector import Error
 
 # Create Blueprint for orders-related routes
@@ -28,7 +28,8 @@ def get_all_kitchen_orders():
         return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
-# ====================================================================================================
+
+# ============================================================
 
 @orders.route("/kitchen_orders", methods=["POST"])
 def add_kitchen_order():
@@ -54,16 +55,21 @@ def add_kitchen_order():
             data.get("notes")
         ))
         get_db().commit()
+        new_id = cursor.lastrowid
+        log_activity(
+            data.get("actor_id") or data["waiter_id"],
+            "kitchen_order_created",
+            f"order_id={new_id}, table_id={data['table_id']}, waiter_id={data['waiter_id']}",
+        )
         return jsonify({"message": "Order added successfully",
-                        "order_id": cursor.lastrowid}), 201
+                        "order_id": new_id}), 201
     except Error as e:
         current_app.logger.error(f"Error in add_order: {e}")
         return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
-        
 
-# ====================================================================================================
+# ============================================================
 
 @orders.route("/kitchen_orders/<int:order_id>", methods=["PUT"])
 def update_order(order_id):
@@ -88,15 +94,20 @@ def update_order(order_id):
         cursor.execute(query, params)
         get_db().commit()
 
+        changed = ", ".join(f for f in allowed_fields if f in data)
+        log_activity(
+            data.get("actor_id") or data.get("waiter_id"),
+            "kitchen_order_updated",
+            f"order_id={order_id}, fields=[{changed}]",
+        )
         return jsonify({"message": "Order updated successfully"}), 200
     except Error as e:
         current_app.logger.error(f"Error in update_order: {e}")
         return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
-        
 
-# ====================================================================================================
+# ============================================================
 
 @orders.route("/kitchen_orders/<int:order_id>", methods=["DELETE"])
 def delete_order(order_id):
@@ -108,10 +119,13 @@ def delete_order(order_id):
         if not cursor.fetchone():
             return jsonify({"error": "Order not found"}), 404
 
+        actor_id = request.args.get("actor_id") or (request.get_json(silent=True) or {}).get("actor_id")
+
         cursor.execute("DELETE FROM order_items WHERE order_id = %s", (order_id,))
         cursor.execute("DELETE FROM kitchen_orders WHERE order_id = %s", (order_id,))
         get_db().commit()
 
+        log_activity(actor_id, "kitchen_order_deleted", f"order_id={order_id}")
         return jsonify({"message": "Order deleted successfully"}), 200
     except Error as e:
         current_app.logger.error(f"Error in delete_order: {e}")
@@ -143,7 +157,7 @@ def get_order_items(order_id):
     finally:
         cursor.close()
 
-# ====================================================================================================
+# ============================================================
 
 @orders.route("/order_items", methods=["POST"])
 def add_order_item():
@@ -167,15 +181,18 @@ def add_order_item():
             data.get("special_notes")
         ))
         get_db().commit()
+        new_id = cursor.lastrowid
+        log_activity(data.get("actor_id"), "order_item_created",
+                     f"order_item_id={new_id}, order_id={data['order_id']}, menu_item_id={data['menu_item_id']}")
         return jsonify({"message": "Order item added successfully",
-                        "order_item_id": cursor.lastrowid}), 201
+                        "order_item_id": new_id}), 201
     except Error as e:
         current_app.logger.error(f"Error in add_order_item: {e}")
         return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
 
-# ====================================================================================================
+# ============================================================
 
 @orders.route("/order_items/<int:order_item_id>", methods=["PUT"])
 def update_order_item(order_item_id):
@@ -201,6 +218,9 @@ def update_order_item(order_item_id):
         cursor.execute(query, params)
         get_db().commit()
 
+        changed = ", ".join(f for f in allowed_fields if f in data)
+        log_activity(data.get("actor_id"), "order_item_updated",
+                     f"order_item_id={order_item_id}, fields=[{changed}]")
         return jsonify({"message": "Order item updated successfully"}), 200
     except Error as e:
         current_app.logger.error(f"Error in update_order_item: {e}")
@@ -208,7 +228,7 @@ def update_order_item(order_item_id):
     finally:
         cursor.close()
 
-# ====================================================================================================
+# ============================================================
 @orders.route("/order_items/<int:order_item_id>", methods=["DELETE"])
 def delete_order_item(order_item_id):
     cursor = get_db().cursor(dictionary=True)
@@ -220,10 +240,13 @@ def delete_order_item(order_item_id):
         if not cursor.fetchone():
             return jsonify({"error": "Order item not found"}), 404
 
+        actor_id = request.args.get("actor_id") or (request.get_json(silent=True) or {}).get("actor_id")
+
         cursor.execute("DELETE FROM order_items WHERE order_item_id = %s",
                         (order_item_id,))
         get_db().commit()
 
+        log_activity(actor_id, "order_item_deleted", f"order_item_id={order_item_id}")
         return jsonify({"message": "Order item deleted successfully"}), 200
     except Error as e:
         current_app.logger.error(f"Error in delete_order_item: {e}")

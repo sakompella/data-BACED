@@ -1,5 +1,5 @@
-from flask import Blueprint, jsonify, current_app
-from backend.db_connection import get_db
+from flask import Blueprint, jsonify, request, current_app
+from backend.db_connection import get_db, log_activity
 from mysql.connector import Error
 
 # Create Blueprint for inventory-related routes
@@ -63,8 +63,11 @@ def add_ingredient():
             data["expiration_date"]
         ))
         get_db().commit()
+        new_id = cursor.lastrowid
+        log_activity(data.get("actor_id"), "ingredient_created",
+                     f"ingredient_id={new_id}, name={data['ingredient_name']}")
         return jsonify({"message": "Ingredient added successfully",
-                        "ingredient_id": cursor.lastrowid}), 201
+                        "ingredient_id": new_id}), 201
     except Error as e:
         current_app.logger.error(f"Error in add_ingredient: {e}")
         return jsonify({"error": str(e)}), 500
@@ -122,6 +125,9 @@ def update_ingredient(ingredient_id):
         cursor.execute(query, params)
         get_db().commit()
 
+        changed = ", ".join(f for f in allowed_fields if f in data)
+        log_activity(data.get("actor_id"), "ingredient_updated",
+                     f"ingredient_id={ingredient_id}, fields=[{changed}]")
         return jsonify({"message": "Ingredient updated successfully"}), 200
     except Error as e:
         current_app.logger.error(f"Error in update_ingredient: {e}")
@@ -142,10 +148,13 @@ def delete_ingredient(ingredient_id):
         if not cursor.fetchone():
             return jsonify({"error": "Ingredient not found"}), 404
 
+        actor_id = request.args.get("actor_id") or (request.get_json(silent=True) or {}).get("actor_id")
+
         cursor.execute("DELETE FROM ingredients WHERE ingredient_id = %s",
                         (ingredient_id,))
         get_db().commit()
 
+        log_activity(actor_id, "ingredient_deleted", f"ingredient_id={ingredient_id}")
         return jsonify({"message": "Ingredient deleted successfully"}), 200
     except Error as e:
         current_app.logger.error(f"Error in delete_ingredient: {e}")
@@ -205,8 +214,11 @@ def add_expected_usage():
             data["start_timestamp"]
         ))
         get_db().commit()
+        new_id = cursor.lastrowid
+        log_activity(data.get("actor_id"), "expected_usage_created",
+                     f"usage_id={new_id}, ingredient_id={data['ingredient_id']}")
         return jsonify({"message": "Expected usage entry created",
-                        "usage_id": cursor.lastrowid}), 201
+                        "usage_id": new_id}), 201
     except Error as e:
         current_app.logger.error(f"Error in add_expected_usage: {e}")
         return jsonify({"error": str(e)}), 500

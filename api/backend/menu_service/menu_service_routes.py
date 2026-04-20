@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
-from backend.db_connection import get_db
+from backend.db_connection import get_db, log_activity
 from mysql.connector import Error
 
 menu_service = Blueprint("menu_service", __name__)
@@ -9,6 +9,8 @@ menu_service = Blueprint("menu_service", __name__)
 # /menu_items routes
 # ============================================================
 
+
+# GET all menu items (Armando 5, Maya 2&3, Priya 5)
 @menu_service.route("/menu_items", methods=["GET"])
 def get_all_menu_items():
     cursor = get_db().cursor(dictionary=True)
@@ -36,6 +38,7 @@ def get_all_menu_items():
         cursor.close()
 
 
+# POST create new menu item (Armando 5, Priya 5)
 @menu_service.route("/menu_items", methods=["POST"])
 def create_menu_item():
     cursor = get_db().cursor(dictionary=True)
@@ -65,8 +68,10 @@ def create_menu_item():
         cursor.execute(query, values)
 
         get_db().commit()
-        current_app.logger.info(f'Created menu item successfully, menu_item_id: {cursor.lastrowid}')
-        return jsonify({"message": "Menu Item created successfully", "menu_item_id": cursor.lastrowid}), 201
+        new_id = cursor.lastrowid
+        current_app.logger.info(f'Created menu item successfully, menu_item_id: {new_id}')
+        log_activity(data.get("actor_id"), "menu_item_created", f"menu_item_id={new_id}, name={data['item_name']}")
+        return jsonify({"message": "Menu Item created successfully", "menu_item_id": new_id}), 201
     except Error as e:
         current_app.logger.error(f'Database error in create_menu_item: {e}')
         return jsonify({"error": str(e)}), 500
@@ -74,6 +79,7 @@ def create_menu_item():
         cursor.close()
 
 
+# PUT update menu item availability or details (Armando 5&6, Priya 5)
 @menu_service.route("/menu_items/<int:menu_item_id>", methods=["PUT"])
 def update_menu_item(menu_item_id):
     cursor = get_db().cursor(dictionary=True)
@@ -99,6 +105,8 @@ def update_menu_item(menu_item_id):
         get_db().commit()
 
         current_app.logger.info(f'Updated menu item successfully, id: {menu_item_id}')
+        changed = ", ".join(f for f in ["item_name", "description", "availability_status", "price"] if f in data)
+        log_activity(data.get("actor_id"), "menu_item_updated", f"menu_item_id={menu_item_id}, fields=[{changed}]")
         return jsonify({"message": "Menu Item updated successfully"}), 200
     except Error as e:
         current_app.logger.error(f'Database error in update_menu_item: {e}')
@@ -107,6 +115,7 @@ def update_menu_item(menu_item_id):
         cursor.close()
 
 
+# DELETE menu item (Armando 5, Priya 5)
 @menu_service.route("/menu_items/<int:menu_item_id>", methods=["DELETE"])
 def delete_menu_item(menu_item_id):
     cursor = get_db().cursor(dictionary=True)
@@ -117,10 +126,13 @@ def delete_menu_item(menu_item_id):
         if not cursor.fetchone():
             return jsonify({"error": "Menu Item not found"}), 404
 
+        actor_id = request.args.get("actor_id") or (request.get_json(silent=True) or {}).get("actor_id")
+
         cursor.execute("DELETE FROM menu_items WHERE menu_item_id = %s", (menu_item_id,))
         get_db().commit()
 
         current_app.logger.info(f'Deleted menu item: {menu_item_id}')
+        log_activity(actor_id, "menu_item_deleted", f"menu_item_id={menu_item_id}")
         return jsonify({"message": "Menu Item deleted successfully"}), 200
     except Error as e:
         current_app.logger.error(f'Database error in delete_menu_item: {e}')
@@ -133,6 +145,7 @@ def delete_menu_item(menu_item_id):
 # /notifications routes
 # ============================================================
 
+# GET all notifications for a user (Maya 4)
 @menu_service.route("/notifications/<int:user_id>", methods=["GET"])
 def get_user_notifications(user_id):
     cursor = get_db().cursor(dictionary=True)
@@ -164,6 +177,7 @@ def get_user_notifications(user_id):
         cursor.close()
 
 
+# POST create new notification for menu items unavailable (Armando 6, Maya 4)
 @menu_service.route("/notifications", methods=["POST"])
 def create_notification():
     cursor = get_db().cursor(dictionary=True)
@@ -188,8 +202,14 @@ def create_notification():
         ))
 
         get_db().commit()
-        current_app.logger.info(f'Notification created successfully, id: {cursor.lastrowid}')
-        return jsonify({"message": "Notification created successfully", "notification_id": cursor.lastrowid}), 201
+        new_id = cursor.lastrowid
+        current_app.logger.info(f'Notification created successfully, id: {new_id}')
+        log_activity(
+            data.get("actor_id") or data["user_id"],
+            "notification_created",
+            f"alert_id={new_id}, recipient_user_id={data['user_id']}",
+        )
+        return jsonify({"message": "Notification created successfully", "notification_id": new_id}), 201
     except Error as e:
         current_app.logger.error(f'Database error in create_notification: {e}')
         return jsonify({"error": str(e)}), 500
@@ -197,6 +217,7 @@ def create_notification():
         cursor.close()
 
 
+# PUT update notification as read (Maya 4)
 @menu_service.route("/notifications/<int:alert_id>", methods=["PUT"])
 def update_notification(alert_id):
     cursor = get_db().cursor(dictionary=True)
@@ -222,6 +243,8 @@ def update_notification(alert_id):
         get_db().commit()
 
         current_app.logger.info(f'Updated notification successfully, id: {alert_id}')
+        changed = ", ".join(f for f in ["message", "is_read"] if f in data)
+        log_activity(data.get("actor_id"), "notification_updated", f"alert_id={alert_id}, fields=[{changed}]")
         return jsonify({"message": "Notification updated successfully"}), 200
     except Error as e:
         current_app.logger.error(f'Database error in update_notification: {e}')
