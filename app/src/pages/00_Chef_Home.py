@@ -20,7 +20,7 @@ except Exception:
     pending_orders = "—"
 
 try:
-    ingredients = requests.get(f"{API_BASE}/inv/ingredients", timeout=5).json()
+    ingredients = requests.get(f"{API_BASE}/ingredients", timeout=5).json()
     low_stock = sum(1 for i in ingredients if i.get("quantity", 0) <= i.get("reorder_count", 0))
 except Exception:
     low_stock = "—"

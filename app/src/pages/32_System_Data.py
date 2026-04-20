@@ -50,7 +50,7 @@ with left_col:
     users_data, _ = safe_get(f"{API_BASE}/users")
     orders_data, _ = safe_get(f"{API_BASE}/kitchen_orders")
     menu_data, _ = safe_get(f"{API_BASE}/menu_items")
-    ingredients_data, _ = safe_get(f"{API_BASE}/inv/ingredients")
+    ingredients_data, _ = safe_get(f"{API_BASE}/ingredients")
 
     health_rows = [
         {"Metric": "API Status",

@@ -30,7 +30,7 @@ days = 7 if period == "Last 7 Days" else 30
 st.subheader("Ingredient Usage")
  
 try:
-    usage_resp = requests.get(f"{API_BASE}/inv/expected_usage")
+    usage_resp = requests.get(f"{API_BASE}/expected_usage")
     usage_resp.raise_for_status()
     usage_data = usage_resp.json()
 except requests.RequestException:
@@ -38,7 +38,7 @@ except requests.RequestException:
     st.stop()
  
 try:
-    ingredients_resp = requests.get(f"{API_BASE}/inv/ingredients")
+    ingredients_resp = requests.get(f"{API_BASE}/ingredients")
     ingredients_resp.raise_for_status()
     ingredients_data = ingredients_resp.json()
 except requests.RequestException:
@@ -115,7 +115,7 @@ st.divider()
 st.subheader("Inventory vs Expected Usage")
 
 try:
-    usage_resp = requests.get(f"{API_BASE}/inv/expected_usage")
+    usage_resp = requests.get(f"{API_BASE}/expected_usage")
     usage_resp.raise_for_status()
     usage_data = usage_resp.json()
 except requests.RequestException:
@@ -123,7 +123,7 @@ except requests.RequestException:
     st.stop()
 
 try:
-    ing_resp = requests.get(f"{API_BASE}/inv/ingredients")
+    ing_resp = requests.get(f"{API_BASE}/ingredients")
     ing_resp.raise_for_status()
     ing_data = ing_resp.json()
 except requests.RequestException:
@@ -217,7 +217,7 @@ with st.form("demand_form", clear_on_submit=True):
 if submitted:
     ing_id = ing_options.get(selected_ing)
     try:
-        resp = requests.post(f"{API_BASE}/inv/expected_usage", json={
+        resp = requests.post(f"{API_BASE}/expected_usage", json={
             "ingredient_id": ing_id,
             "expected_quantity": expected_qty,
             "time_period": time_period,

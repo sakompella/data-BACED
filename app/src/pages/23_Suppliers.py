@@ -17,7 +17,7 @@ st.title("Suppliers")
 # Fetch data
 # ---------------------------------------------------------------------------
 try:
-    suppliers_resp = requests.get(f"{API_BASE}/inv/suppliers")
+    suppliers_resp = requests.get(f"{API_BASE}/suppliers")
     suppliers_resp.raise_for_status()
     suppliers_data = suppliers_resp.json()
 except requests.RequestException:
@@ -25,7 +25,7 @@ except requests.RequestException:
     st.stop()
  
 try:
-    prices_resp = requests.get(f"{API_BASE}/inv/supplier_prices")
+    prices_resp = requests.get(f"{API_BASE}/supplier_prices")
     prices_resp.raise_for_status()
     prices_data = prices_resp.json()
 except requests.RequestException:

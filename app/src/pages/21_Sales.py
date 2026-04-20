@@ -32,7 +32,7 @@ col_sales, col_chart = st.columns(2)
 
 # Fetch kitchen orders
 try:
-    orders_resp = requests.get(f"{API_BASE}/ord/kitchen_orders")
+    orders_resp = requests.get(f"{API_BASE}/kitchen_orders")
     orders_resp.raise_for_status()
     orders_data = orders_resp.json()
 except requests.RequestException:
@@ -40,7 +40,7 @@ except requests.RequestException:
 
 # Fetch menu items for average price calculation
 try:
-    menu_resp = requests.get(f"{API_BASE}/menu/menu_items")
+    menu_resp = requests.get(f"{API_BASE}/menu_items")
     menu_resp.raise_for_status()
     menu_items_data = menu_resp.json()
 except requests.RequestException:
