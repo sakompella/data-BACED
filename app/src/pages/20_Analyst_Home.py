@@ -13,9 +13,9 @@ st.write('### What would you like to do today?')
 if st.button('Usage & Inventory Analytics',
              type='primary',
              use_container_width=True):
-    st.switch_page('pages/analyst/21_Usage_Analytics.py')
+    st.switch_page('pages/21_Usage_Analytics.py')
 
 if st.button('Forecasting & Suppliers',
              type='primary',
              use_container_width=True):
-    st.switch_page('pages/analyst/22_Forecasting.py')
+    st.switch_page('pages/22_Forecasting.py')

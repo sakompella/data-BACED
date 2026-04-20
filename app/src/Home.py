@@ -45,7 +45,7 @@ if st.button("Act as Armando, Head Chef",
     st.session_state['first_name'] = 'Armando'
     st.session_state['user_id'] = 1
     logger.info("Logging in as Chef Persona")
-    st.switch_page('pages/chef/00_Chef_Home.py')
+    st.switch_page('pages/00_Chef_Home.py')
 
 if st.button('Act as Maya, Waiter',
              type='primary',
@@ -55,7 +55,7 @@ if st.button('Act as Maya, Waiter',
     st.session_state['first_name'] = 'Maya'
     st.session_state['user_id'] = 8
     logger.info("Logging in as Waiter Persona")
-    st.switch_page('pages/waiter/10_Waiter_Home.py')
+    st.switch_page('pages/10_Waiter_Home.py')
 
 if st.button('Act as Charles, Operations Analyst',
              type='primary',
@@ -65,7 +65,7 @@ if st.button('Act as Charles, Operations Analyst',
     st.session_state['first_name'] = 'Charles'
     st.session_state['user_id'] = 14
     logger.info("Logging in as Analyst Persona")
-    st.switch_page('pages/analyst/20_Analyst_Home.py')
+    st.switch_page('pages/20_Analyst_Home.py')
 
 if st.button('Act as Priya, System Administrator',
              type='primary',
@@ -75,4 +75,4 @@ if st.button('Act as Priya, System Administrator',
     st.session_state['first_name'] = 'Priya'
     st.session_state['user_id'] = 7
     logger.info("Logging in as Admin Persona")
-    st.switch_page('pages/admin/30_Admin_Home.py')
+    st.switch_page('pages/30_Admin_Home.py')
