@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, current_app
 from backend.api_utils import db_error_response, require_json_object
 from backend.db_connection import get_db
 from mysql.connector import Error
