@@ -19,3 +19,8 @@ if st.button('System & Data',
              type='primary',
              use_container_width=True):
     st.switch_page('pages/32_System_Data.py')
+    
+if st.button('Menu & Inventory Config',
+             type='primary',
+             use_container_width=True):
+    st.switch_page('pages/33_Menu_Configuration.py')
