@@ -6,7 +6,7 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_text, API_BASE
+from modules.style import inject_custom_css, API_BASE
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -71,17 +71,26 @@ with tab_stock:
         filtered = filtered[filtered["status"] == status_filter]
 
     display_df = filtered.copy()
-    display_df["Status"] = display_df["status"].apply(
-        lambda s: status_text(s, s.lower())
-    )
+    display_df["Status"] = display_df["status"]
     display_df["Expiration Date"] = display_df["expiration_date"].dt.strftime("%Y-%m-%d")
     display_df["Details"] = display_df.apply(
         lambda r: f"Reorder at {r['reorder_count']} · Supplier: {r['supplier_name']}",
         axis=1,
     )
 
+    def color_status(val):
+        colors = {
+            "Low": "background-color: #E53836; color: black",
+            "Expiring": "background-color: #EDA321; color: black",
+            "OK": "background-color: #2EB859; color: black",
+        }
+        return colors.get(val, "")
+
+    view = display_df[["ingredient_name", "quantity", "unit", "Expiration Date", "Status", "Details"]]
+    styled = view.style.map(color_status, subset=["Status"])
+
     st.dataframe(
-        display_df[["ingredient_name", "quantity", "unit", "Expiration Date", "Status", "Details"]],
+        styled,
         column_config={
             "ingredient_name": st.column_config.TextColumn("Ingredient"),
             "quantity": st.column_config.NumberColumn("Qty"),
@@ -111,13 +120,14 @@ with tab_expiring:
         st.info("No ingredients expiring within the next 14 days.")
     else:
         exp_display = expiring_df.copy()
-        exp_display["Status"] = exp_display["status"].apply(
-            lambda s: status_text(s, s.lower())
-        )
+        exp_display["Status"] = exp_display["status"]
         exp_display["Expiration Date"] = exp_display["expiration_date"].dt.strftime("%Y-%m-%d")
 
+        exp_view = exp_display[["ingredient_name", "quantity", "unit", "Expiration Date", "Status", "supplier_name"]]
+        exp_styled = exp_view.style.map(color_status, subset=["Status"])
+
         st.dataframe(
-            exp_display[["ingredient_name", "quantity", "unit", "Expiration Date", "Status", "supplier_name"]],
+            exp_styled,
             column_config={
                 "ingredient_name": st.column_config.TextColumn("Ingredient"),
                 "quantity": st.column_config.NumberColumn("Qty"),
