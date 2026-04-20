@@ -1,10 +1,10 @@
 from flask import Blueprint, jsonify, request, current_app
-from backend.db_connection import get_db
+from backend.db_connection import get_db, log_activity
 from mysql.connector import Error
 
 user_management = Blueprint("user_management", __name__)
 
-
+# GET all users (Priya 1)
 @user_management.route("/users", methods=["GET"])
 def get_all_users():
     cursor = get_db().cursor(dictionary=True)
@@ -32,6 +32,7 @@ def get_all_users():
         cursor.close()
 
 
+# POST a new user (Priya 1)
 @user_management.route("/users", methods=["POST"])
 def create_user():
     cursor = get_db().cursor(dictionary=True)
@@ -67,8 +68,14 @@ def create_user():
             ))
 
         get_db().commit()
-        current_app.logger.info(f'Created user successfully, user_id: {cursor.lastrowid}')
-        return jsonify({"message": "User created successfully", "user_id": cursor.lastrowid}), 201
+        new_user_id = cursor.lastrowid
+        current_app.logger.info(f'Created user successfully, user_id: {new_user_id}')
+        log_activity(
+            data.get("actor_id") or new_user_id,
+            "user_created",
+            f"user_id={new_user_id}, name={data['name']}, role_id={data['role_id']}",
+        )
+        return jsonify({"message": "User created successfully", "user_id": new_user_id}), 201
     except Error as e:
         current_app.logger.error(f'Database error in create_user: {e}')
         return jsonify({"error": str(e)}), 500
@@ -76,6 +83,7 @@ def create_user():
         cursor.close()
 
 
+# PUT modify a user count (Priya 1)
 @user_management.route("/users/<int:user_id>", methods=["PUT"])
 def update_user(user_id):
     cursor = get_db().cursor(dictionary=True)
@@ -101,6 +109,12 @@ def update_user(user_id):
         get_db().commit()
 
         current_app.logger.info(f'Updated user successfully, id: {user_id}')
+        changed = ", ".join(f for f in ["name", "email", "role_id"] if f in data)
+        log_activity(
+            data.get("actor_id") or user_id,
+            "user_updated",
+            f"user_id={user_id}, fields=[{changed}]",
+        )
         return jsonify({"message": "User updated successfully"}), 200
     except Error as e:
         current_app.logger.error(f'Database error in update_user: {e}')
@@ -109,6 +123,7 @@ def update_user(user_id):
         cursor.close()
 
 
+# DELETE a user account (Priya 1)
 @user_management.route("/users/<int:user_id>", methods=["DELETE"])
 def delete_user(user_id):
     cursor = get_db().cursor(dictionary=True)
@@ -118,6 +133,12 @@ def delete_user(user_id):
         cursor.execute("SELECT user_id FROM users WHERE user_id = %s", (user_id,))
         if not cursor.fetchone():
             return jsonify({"error": "User not found"}), 404
+
+        # Actor must come from the request — we can't self-reference because
+        # the target user is about to be deleted and the FK would break.
+        actor_id = request.args.get("actor_id") or (request.get_json(silent=True) or {}).get("actor_id")
+        if actor_id and int(actor_id) != user_id:
+            log_activity(int(actor_id), "user_deleted", f"user_id={user_id}")
 
         cursor.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
         get_db().commit()
@@ -148,6 +169,7 @@ def get_all_roles():
         cursor.close()
 
 
+# PUT update roles (Priya 2)
 @user_management.route("/roles/<int:role_id>", methods=["PUT"])
 def update_role(role_id):
     cursor = get_db().cursor(dictionary=True)
@@ -173,6 +195,8 @@ def update_role(role_id):
         get_db().commit()
 
         current_app.logger.info(f'Updated role successfully, id: {role_id}')
+        changed = ", ".join(f for f in ["role_name", "description"] if f in data)
+        log_activity(data.get("actor_id"), "role_updated", f"role_id={role_id}, fields=[{changed}]")
         return jsonify({"message": "Role updated successfully"}), 200
     except Error as e:
         current_app.logger.error(f'Database error in update_role: {e}')

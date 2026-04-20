@@ -30,6 +30,24 @@ def close_db(e=None):
         db.close()
 
 
+def log_activity(user_id, action, details=None):
+    # Writes a row to activity_log. No-op when user_id is falsy so callers
+    # can pass through an optional actor without branching. Never raises —
+    # logging failures must not break the primary request.
+    if not user_id:
+        return
+    try:
+        cursor = get_db().cursor()
+        cursor.execute(
+            "INSERT INTO activity_log (user_id, action, details) VALUES (%s, %s, %s)",
+            (user_id, action, details),
+        )
+        get_db().commit()
+        cursor.close()
+    except Exception as e:
+        current_app.logger.error(f"log_activity failed: {e}")
+
+
 def init_app(app):
     # This registers close_db as a teardown function, meaning Flask will
     # call it automatically at the end of every request. There is no
