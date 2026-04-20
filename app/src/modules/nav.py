@@ -50,11 +50,14 @@ def notifications_nav():
 def analyst_home_nav():
     st.sidebar.page_link("pages/20_Analyst_Home.py", label="Analyst Home", icon="📊")
 
-def usage_analytics_nav():
-    st.sidebar.page_link("pages/21_Usage_Analytics.py", label="Analytics", icon="📈")
+def sales_nav():
+    st.sidebar.page_link("pages/21_Sales.py", label="Sales", icon="📈")
 
-def forecasting_nav():
-    st.sidebar.page_link("pages/22_Forecasting.py", label="Forecasting & Suppliers", icon="🔮")
+def ingredients_nav():
+    st.sidebar.page_link("pages/22_Ingredients.py", label="Ingredients", icon="🍎")
+
+def suppliers_nav():
+    st.sidebar.page_link('pages/23_Suppliers.py', label='Suppliers', icon="🚛")
 
 
 # ---- Role: Administrator (Priya) --------------------------------------------
@@ -104,8 +107,9 @@ def SideBarLinks(show_home=False):
 
         if st.session_state["role"] == "analyst":
             analyst_home_nav()
-            usage_analytics_nav()
-            forecasting_nav()
+            sales_nav()
+            ingredients_nav()
+            suppliers_nav()
 
         if st.session_state["role"] == "administrator":
             admin_home_nav()
