@@ -47,6 +47,4 @@ def create_app():
     app.register_blueprint(menu_service, url_prefix="/menu")
     app.register_blueprint(user_management, url_prefix="/user")
 
-
-
     return app
