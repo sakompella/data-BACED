@@ -15,6 +15,11 @@ inject_custom_css()
 
 st.title("My Orders")
 
+waiter_id = st.session_state.get("user_id")
+if waiter_id is None:
+    st.error("No waiter session is active. Return to Home and choose a user.")
+    st.stop()
+
 STATUS_MAP = {
     "open": ("Queued", "gray"),
     "in_progress": ("Cooking", "amber"),
@@ -60,6 +65,8 @@ with tab_orders:
     except requests.exceptions.RequestException as e:
         st.error(f"Failed to load orders: {e}")
         orders = []
+
+    orders = [order for order in orders if order.get("waiter_id") == waiter_id]
 
     if not orders:
         st.info("No current orders.")
