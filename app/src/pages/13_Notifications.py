@@ -3,7 +3,6 @@ logger = logging.getLogger(__name__)
 
 import streamlit as st
 import requests
-import pandas as pd
 from modules.nav import SideBarLinks
 from modules.style import inject_custom_css, status_text, API_BASE
 
@@ -34,8 +33,21 @@ except requests.RequestException:
 # ---------------------------------------------------------------------------
 tab_all, tab_unread, tab_read = st.tabs(["All", "Unread", "Read"])
 
-def display_notifications(notif_list, tab_name):
-    """Render a list of notification cards."""
+
+def _mark_read(alert_id: int) -> bool:
+    try:
+        resp = requests.put(
+            f"{API_BASE}/menu/notifications/{alert_id}",
+            json={"is_read": 1},
+        )
+        resp.raise_for_status()
+        return True
+    except requests.RequestException as e:
+        st.error(f"Failed to mark as read: {e}")
+        return False
+
+
+def display_notifications(notif_list, key_prefix: str):
     if not notif_list:
         st.info("No notifications.")
         return
@@ -58,16 +70,9 @@ def display_notifications(notif_list, tab_name):
                     st.markdown(status_text("Unread", "amber"))
             with cols[2]:
                 if not is_read:
-                    if st.button("Mark Read", key=f"read_{tab_name}_{alert_id}"):
-                        try:
-                            put_resp = requests.put(
-                                f"{API_BASE}/menu/notifications/{alert_id}",
-                                json={"is_read": 1},
-                            )
-                            put_resp.raise_for_status()
+                    if st.button("Mark Read", key=f"mark_read_{key_prefix}_{alert_id}"):
+                        if _mark_read(alert_id):
                             st.rerun()
-                        except requests.RequestException as e:
-                            st.error(f"Failed to mark as read: {e}")
 
 with tab_all:
     display_notifications(notifications, "all")
@@ -86,19 +91,13 @@ with tab_read:
 unread_count = sum(1 for n in notifications if not n.get("is_read", 0))
 if unread_count > 0:
     if st.button("Mark All as Read", type="primary"):
-        success = True
-        for notif in notifications:
-            if not notif.get("is_read", 0):
-                try:
-                    resp = requests.put(
-                        f"{API_BASE}/menu/notifications/{notif['alert_id']}",
-                        json={"is_read": 1},
-                    )
-                    resp.raise_for_status()
-                except requests.RequestException:
-                    success = False
+        success = all(
+            _mark_read(n["alert_id"])
+            for n in notifications
+            if not n.get("is_read", 0)
+        )
         if success:
             st.success("All notifications marked as read.")
+            st.rerun()
         else:
             st.warning("Some notifications could not be updated.")
-        st.rerun()

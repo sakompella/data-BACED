@@ -122,24 +122,28 @@ with tab_edit:
                 edit_avail = st.selectbox("Availability", ['available', 'unavailable'], index=avail_index)
                 save_clicked = st.form_submit_button("Save Changes", type='primary')
             if save_clicked:
-                if not edit_name.strip():
+                stripped_name = edit_name.strip()
+                if not stripped_name:
                     st.warning('Item name is blank')
-                elif save_menu_item({'item_name': edit_name.strip(), 'description': edit_desc.strip(),
+                elif save_menu_item({'item_name': stripped_name, 'description': edit_desc.strip(),
                             'price': edit_price, 'availability_status': edit_avail}, menu_item_id=item_id):
                     if edit_avail == "unavailable" and item.get("availability_status") == "available":
                         try:
                             users_resp = requests.get(f"{API_BASE}/user/users", params={"role_id": 1})
                             if users_resp.status_code == 200:
                                 for user in users_resp.json():
-                                    requests.post(
-                                        f"{API_BASE}/menu/notifications",
-                                        json={
-                                            "user_id": user["user_id"],
-                                            "message": f"{edit_name.strip()} is now unavailable",
-                                        },
-                                    )
+                                    try:
+                                        requests.post(
+                                            f"{API_BASE}/menu/notifications",
+                                            json={
+                                                "user_id": user["user_id"],
+                                                "message": f"{stripped_name} is now unavailable",
+                                            },
+                                        )
+                                    except requests.RequestException:
+                                        logger.warning("Failed to notify user %s", user.get("user_id"))
                         except requests.RequestException:
-                            logger.error("Failed to send notifications")
+                            logger.error("Failed to fetch users for notification")
                     st.success("Menu item updated")
                     st.rerun()
                 else:
