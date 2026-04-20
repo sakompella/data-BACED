@@ -82,7 +82,7 @@ with tab_stock:
         colors = {
             "Low": "background-color: #E53836; color: white",
             "Expiring": "background-color: #FFD600; color: black",
-            "OK": "background-color: #4CAF50; color: black",
+            "OK": "background-color: #4CAF50; color: white",
         }
         return colors.get(val, "")
 
