@@ -1,5 +1,4 @@
 from flask import Blueprint, jsonify, request, current_app
-from backend.api_utils import db_error_response, require_json_object
 from backend.db_connection import get_db
 from mysql.connector import Error
 
@@ -42,7 +41,7 @@ def get_all_ngos():
         return jsonify(ngo_list), 200
     except Error as e:
         current_app.logger.error(f'Database error in get_all_ngos: {e}')
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
 
@@ -68,8 +67,7 @@ def get_ngo(ngo_id):
 
         return jsonify(ngo), 200
     except Error as e:
-        current_app.logger.error(f'Database error in get_ngo: {e}')
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
 
@@ -79,12 +77,9 @@ def get_ngo(ngo_id):
 # Example: POST /ngo/ngos with JSON body
 @ngos.route("/ngos", methods=["POST"])
 def create_ngo():
-    cursor = None
+    cursor = get_db().cursor(dictionary=True)
     try:
-        data, error_response = require_json_object()
-        if error_response:
-            return error_response
-        cursor = get_db().cursor(dictionary=True)
+        data = request.get_json()
 
         required_fields = ["Name", "Country", "Founding_Year", "Focus_Area", "Website"]
         for field in required_fields:
@@ -106,11 +101,9 @@ def create_ngo():
         get_db().commit()
         return jsonify({"message": "NGO created successfully", "ngo_id": cursor.lastrowid}), 201
     except Error as e:
-        current_app.logger.error(f'Database error in create_ngo: {e}')
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
-        if cursor is not None:
-            cursor.close()
+        cursor.close()
 
 
 # Update an existing NGO's information
@@ -118,12 +111,9 @@ def create_ngo():
 # Example: PUT /ngo/ngos/1 with JSON body containing fields to update
 @ngos.route("/ngos/<int:ngo_id>", methods=["PUT"])
 def update_ngo(ngo_id):
-    cursor = None
+    cursor = get_db().cursor(dictionary=True)
     try:
-        data, error_response = require_json_object()
-        if error_response:
-            return error_response
-        cursor = get_db().cursor(dictionary=True)
+        data = request.get_json()
 
         cursor.execute("SELECT NGO_ID FROM WorldNGOs WHERE NGO_ID = %s", (ngo_id,))
         if not cursor.fetchone():
@@ -144,11 +134,9 @@ def update_ngo(ngo_id):
 
         return jsonify({"message": "NGO updated successfully"}), 200
     except Error as e:
-        current_app.logger.error(f'Database error in update_ngo: {e}')
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
-        if cursor is not None:
-            cursor.close()
+        cursor.close()
 
 
 # Get all projects associated with a specific NGO
@@ -164,8 +152,7 @@ def get_ngo_projects(ngo_id):
         cursor.execute("SELECT * FROM Projects WHERE NGO_ID = %s", (ngo_id,))
         return jsonify(cursor.fetchall()), 200
     except Error as e:
-        current_app.logger.error(f'Database error in get_ngo_projects: {e}')
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
 
@@ -183,7 +170,6 @@ def get_ngo_donors(ngo_id):
         cursor.execute("SELECT * FROM Donors WHERE NGO_ID = %s", (ngo_id,))
         return jsonify(cursor.fetchall()), 200
     except Error as e:
-        current_app.logger.error(f'Database error in get_ngo_donors: {e}')
-        return db_error_response(e)
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
