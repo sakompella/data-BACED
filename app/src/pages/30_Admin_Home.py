@@ -17,28 +17,28 @@ col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     try:
-        data = requests.get(f"{API_BASE}/user/users").json()
+        data = requests.get(f"{API_BASE}/users").json()
         st.metric("Total Users", len(data))
     except Exception:
         st.metric("Total Users", "—")
 
 with col2:
     try:
-        data = requests.get(f"{API_BASE}/user/roles").json()
+        data = requests.get(f"{API_BASE}/roles").json()
         st.metric("Roles Defined", len(data))
     except Exception:
         st.metric("Roles Defined", "—")
 
 with col3:
     try:
-        data = requests.get(f"{API_BASE}/menu/menu_items").json()
+        data = requests.get(f"{API_BASE}/menu_items").json()
         st.metric("Menu Items", len(data))
     except Exception:
         st.metric("Menu Items", "—")
 
 with col4:
     try:
-        data = requests.get(f"{API_BASE}/user/activity_log").json()
+        data = requests.get(f"{API_BASE}/activity_log").json()
         st.metric("Activity Logs", len(data))
     except Exception:
         st.metric("Activity Logs", "—")

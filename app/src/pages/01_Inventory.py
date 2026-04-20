@@ -18,7 +18,7 @@ st.title("Inventory & Stock")
 # Fetch ingredient data
 # ---------------------------------------------------------------------------
 try:
-    response = requests.get(f"{API_BASE}/inv/ingredients")
+    response = requests.get(f"{API_BASE}/ingredients")
     response.raise_for_status()
     data = response.json()
 except requests.RequestException:
@@ -157,7 +157,7 @@ with st.form('stock_request_form', clear_on_submit=True):
 if req_submitted:
     ing_id = selected_ing.get('ingredient_id')
     try:
-        resp = requests.post(f"{API_BASE}/menu/notifications", json={'user_id': st.session_state.get('user_id'),
+        resp = requests.post(f"{API_BASE}/notifications", json={'user_id': st.session_state.get('user_id'),
                                                                      'message': f"Stock request: {request_qty} {unit} of {selected_name}",
                                                                      })
         if resp.status_code in (200, 201):

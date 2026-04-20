@@ -47,9 +47,9 @@ with left_col:
         api_online = False
         response_ms = 0
 
-    users_data, _ = safe_get(f"{API_BASE}/user/users")
-    orders_data, _ = safe_get(f"{API_BASE}/ord/kitchen_orders")
-    menu_data, _ = safe_get(f"{API_BASE}/menu/menu_items")
+    users_data, _ = safe_get(f"{API_BASE}/users")
+    orders_data, _ = safe_get(f"{API_BASE}/kitchen_orders")
+    menu_data, _ = safe_get(f"{API_BASE}/menu_items")
     ingredients_data, _ = safe_get(f"{API_BASE}/inv/ingredients")
 
     health_rows = [
@@ -76,7 +76,7 @@ with left_col:
     # ---- Section 2: Data Discrepancies ------------------------------------
     st.subheader("Potential Data Discrepancies")
 
-    expected_data, exp_ok = safe_get(f"{API_BASE}/inv/expected_usage")
+    expected_data, exp_ok = safe_get(f"{API_BASE}/expected_usage")
 
     discrepancies_df = pd.DataFrame()
 

@@ -27,8 +27,8 @@ def fetch_or_stop(url: str, error_text: str):
         st.stop()
 
 
-usage_data = fetch_or_stop(f"{API_BASE}/inv/expected_usage", "Failed to load expected usage data.")
-ingredient_data = fetch_or_stop(f"{API_BASE}/inv/ingredients", "Failed to load ingredient data.")
+usage_data = fetch_or_stop(f"{API_BASE}/expected_usage", "Failed to load expected usage data.")
+ingredient_data = fetch_or_stop(f"{API_BASE}/ingredients", "Failed to load ingredient data.")
 
 if not usage_data or not ingredient_data:
     st.warning("No data available for demand planning.")
@@ -107,7 +107,7 @@ with tool_lookup:
         if st.button("Fetch Ingredient", key="btn_fetch_ingredient", use_container_width=True):
             try:
                 response = requests.get(
-                    f"{API_BASE}/inv/ingredients/{int(ingredient_id_lookup)}",
+                    f"{API_BASE}/ingredients/{int(ingredient_id_lookup)}",
                     timeout=5,
                 )
                 if response.status_code == 404:
@@ -156,7 +156,7 @@ with tool_add_usage:
             if actor_id:
                 payload["actor_id"] = actor_id
             try:
-                response = requests.post(f"{API_BASE}/inv/expected_usage", json=payload, timeout=5)
+                response = requests.post(f"{API_BASE}/expected_usage", json=payload, timeout=5)
                 response.raise_for_status()
                 created = response.json()
                 st.success(f"Created expected usage entry #{created.get('usage_id', 'new')}.")

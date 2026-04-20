@@ -17,7 +17,7 @@ st.title("Users & Activity")
 # Fetch users and roles
 # ---------------------------------------------------------------------------
 try:
-    users_resp = requests.get(f"{API_BASE}/user/users")
+    users_resp = requests.get(f"{API_BASE}/users")
     users_resp.raise_for_status()
     users = users_resp.json()
 except requests.RequestException:
@@ -25,7 +25,7 @@ except requests.RequestException:
     st.stop()
 
 try:
-    roles_resp = requests.get(f"{API_BASE}/user/roles")
+    roles_resp = requests.get(f"{API_BASE}/roles")
     roles_resp.raise_for_status()
     roles = roles_resp.json()
 except requests.RequestException:
@@ -61,7 +61,7 @@ else:
 st.subheader("Recent Activity Log")
 
 try:
-    log_resp = requests.get(f"{API_BASE}/user/activity_log")
+    log_resp = requests.get(f"{API_BASE}/activity_log")
     log_resp.raise_for_status()
     log_data = log_resp.json()
 except requests.RequestException:
@@ -118,7 +118,7 @@ with st.expander("Create User..."):
             if actor_id:
                 payload["actor_id"] = actor_id
             try:
-                response = requests.post(f"{API_BASE}/user/users", json=payload)
+                response = requests.post(f"{API_BASE}/users", json=payload)
                 response.raise_for_status()
                 st.success(f"User created successfully (ID {response.json().get('user_id')}).")
                 st.rerun()
@@ -157,7 +157,7 @@ with st.expander("Update Role Definition..."):
             payload["actor_id"] = actor_id
         try:
             response = requests.put(
-                f"{API_BASE}/user/roles/{selected_role['role_id']}",
+                f"{API_BASE}/roles/{selected_role['role_id']}",
                 json=payload,
             )
             response.raise_for_status()
@@ -215,7 +215,7 @@ with st.expander("Modify Users..."):
                 }
                 try:
                     resp = requests.put(
-                        f"{API_BASE}/user/users/{selected_user['user_id']}",
+                        f"{API_BASE}/users/{selected_user['user_id']}",
                         json=payload,
                     )
                     resp.raise_for_status()
@@ -238,7 +238,7 @@ with st.expander("Modify Users..."):
                     if st.button("Yes, delete"):
                         try:
                             resp = requests.delete(
-                                f"{API_BASE}/user/users/{selected_user['user_id']}"
+                                f"{API_BASE}/users/{selected_user['user_id']}"
                             )
                             resp.raise_for_status()
                             st.success("User deleted.")

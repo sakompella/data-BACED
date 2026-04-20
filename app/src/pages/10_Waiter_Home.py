@@ -16,7 +16,7 @@ st.caption("Take orders, track tables, and keep guests happy.")
 user_id = st.session_state.get("user_id")
 
 try:
-    orders = requests.get(f"{API_BASE}/ord/kitchen_orders", timeout=5).json()
+    orders = requests.get(f"{API_BASE}/kitchen_orders", timeout=5).json()
     active_orders = sum(
         1 for o in orders
         if o.get("waiter_id") == user_id and o.get("status") not in ("completed", "cancelled")
@@ -25,13 +25,13 @@ except Exception:
     active_orders = "—"
 
 try:
-    notifications = requests.get(f"{API_BASE}/menu/notifications/{user_id}", timeout=5).json()
+    notifications = requests.get(f"{API_BASE}/notifications/{user_id}", timeout=5).json()
     unread_alerts = sum(1 for n in notifications if not n.get("is_read"))
 except Exception:
     unread_alerts = "—"
 
 try:
-    menu_items = requests.get(f"{API_BASE}/menu/menu_items", timeout=5).json()
+    menu_items = requests.get(f"{API_BASE}/menu_items", timeout=5).json()
     available_items = sum(
         1 for m in menu_items
         if str(m.get("availability_status", "")).lower() == "available"

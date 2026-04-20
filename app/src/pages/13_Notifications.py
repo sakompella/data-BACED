@@ -21,7 +21,7 @@ if waiter_id is None:
 # Fetch notifications for this user
 # ---------------------------------------------------------------------------
 try:
-    resp = requests.get(f"{API_BASE}/menu/notifications/{waiter_id}")
+    resp = requests.get(f"{API_BASE}/notifications/{waiter_id}")
     resp.raise_for_status()
     notifications = resp.json()
 except requests.RequestException:
@@ -37,7 +37,7 @@ tab_all, tab_unread, tab_read = st.tabs(["All", "Unread", "Read"])
 def _mark_read(alert_id: int) -> bool:
     try:
         resp = requests.put(
-            f"{API_BASE}/menu/notifications/{alert_id}",
+            f"{API_BASE}/notifications/{alert_id}",
             json={"is_read": 1},
         )
         resp.raise_for_status()

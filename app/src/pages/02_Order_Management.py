@@ -46,7 +46,7 @@ def update_order_status(order_id: int, new_status: str):
     """PUT new status for a kitchen order; returns True on success."""
     try:
         resp = requests.put(
-            f"{API_BASE}/ord/kitchen_orders/{order_id}",
+            f"{API_BASE}/kitchen_orders/{order_id}",
             json={"status": new_status},
         )
         return resp.status_code == 200
@@ -61,7 +61,7 @@ def update_order_status(order_id: int, new_status: str):
 
 st.subheader("Kitchen Order Queue")
 
-orders = fetch_json(f"{API_BASE}/ord/kitchen_orders")
+orders = fetch_json(f"{API_BASE}/kitchen_orders")
 
 if orders is None:
     st.error("Failed to load kitchen orders from the server.")
@@ -73,7 +73,7 @@ else:
 
     for order in orders:
         oid = order["order_id"]
-        items = fetch_json(f"{API_BASE}/ord/order_items/{oid}") or []
+        items = fetch_json(f"{API_BASE}/order_items/{oid}") or []
         order["_items"] = items
 
         if order["status"] in ("open", "in_progress"):

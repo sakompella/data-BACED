@@ -28,9 +28,9 @@ def fetch_json(url):
 def save_menu_item(payload, menu_item_id=None):
     try:
         if menu_item_id:
-            resp = requests.put(f"{API_BASE}/menu/menu_items/{menu_item_id}", json=payload)
+            resp = requests.put(f"{API_BASE}/menu_items/{menu_item_id}", json=payload)
         else:
-            resp = requests.post(f"{API_BASE}/menu/menu_items", json=payload)
+            resp = requests.post(f"{API_BASE}/menu_items", json=payload)
         return resp.status_code in (200,201)
     except requests.RequestException as e:
         logger.error("Failed to save menu item: %s", e)
@@ -42,7 +42,7 @@ def save_menu_item(payload, menu_item_id=None):
 # ---------------------------------------------
 st.subheader("Menu Items")
 
-menu_items = fetch_json(f"{API_BASE}/menu/menu_items")
+menu_items = fetch_json(f"{API_BASE}/menu_items")
 if menu_items is None:
     st.error("Failed to load menu items from server")
 elif not menu_items:
@@ -129,12 +129,12 @@ with tab_edit:
                             'price': edit_price, 'availability_status': edit_avail}, menu_item_id=item_id):
                     if edit_avail == "unavailable" and item.get("availability_status") == "available":
                         try:
-                            users_resp = requests.get(f"{API_BASE}/user/users", params={"role_id": 1})
+                            users_resp = requests.get(f"{API_BASE}/users", params={"role_id": 1})
                             if users_resp.status_code == 200:
                                 for user in users_resp.json():
                                     try:
                                         requests.post(
-                                            f"{API_BASE}/menu/notifications",
+                                            f"{API_BASE}/notifications",
                                             json={
                                                 "user_id": user["user_id"],
                                                 "message": f"{stripped_name} is now unavailable",
@@ -167,7 +167,7 @@ with tab_delete:
                 c1, c2 = st.columns([1, 1,])
                 if c1.button("Confirm", type='primary'):
                     try:
-                        resp = requests.put(f"{API_BASE}/menu/menu_items/{item_id}",
+                        resp = requests.put(f"{API_BASE}/menu_items/{item_id}",
                                             json={'availability_status': 'archived'})
                         if resp.status_code == 200:
                             st.success("Menu item archived")

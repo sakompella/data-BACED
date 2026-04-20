@@ -126,11 +126,11 @@ def build_role_user_map(users: list[dict], roles: list[dict]) -> dict[str, list[
 
 
 try:
-    roles_resp = requests.get(f"{API_BASE}/user/roles", timeout=5)
+    roles_resp = requests.get(f"{API_BASE}/roles", timeout=5)
     roles_resp.raise_for_status()
     roles = roles_resp.json()
 
-    users_resp = requests.get(f"{API_BASE}/user/users", timeout=5)
+    users_resp = requests.get(f"{API_BASE}/users", timeout=5)
     users_resp.raise_for_status()
     users = users_resp.json()
 except requests.RequestException as exc:

@@ -35,12 +35,11 @@ def create_app():
     app.logger.info("create_app(): initializing database connection")
     init_db(app)
 
-    # Register the routes from each Blueprint with the app object
-    # and give a url prefix to each.
+    # Register the routes from each Blueprint with the app object.
     app.logger.info("create_app(): registering blueprints")
-    app.register_blueprint(inventory, url_prefix="/inv")
-    app.register_blueprint(orders, url_prefix="/ord")
-    app.register_blueprint(menu_service, url_prefix="/menu")
-    app.register_blueprint(user_management, url_prefix="/user")
+    app.register_blueprint(inventory)
+    app.register_blueprint(orders)
+    app.register_blueprint(menu_service)
+    app.register_blueprint(user_management)
 
     return app

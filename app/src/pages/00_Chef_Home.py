@@ -14,7 +14,7 @@ st.title(f"Welcome, {st.session_state['first_name']} — Chef")
 st.caption("Manage kitchen operations, monitor inventory, and keep the menu fresh.")
 
 try:
-    orders = requests.get(f"{API_BASE}/ord/kitchen_orders", timeout=5).json()
+    orders = requests.get(f"{API_BASE}/kitchen_orders", timeout=5).json()
     pending_orders = sum(1 for o in orders if o.get("status") not in ("completed", "cancelled"))
 except Exception:
     pending_orders = "—"
@@ -26,7 +26,7 @@ except Exception:
     low_stock = "—"
 
 try:
-    menu_items = requests.get(f"{API_BASE}/menu/menu_items", timeout=5).json()
+    menu_items = requests.get(f"{API_BASE}/menu_items", timeout=5).json()
     total_menu = len(menu_items)
 except Exception:
     total_menu = "—"

@@ -59,7 +59,7 @@ tab_orders, tab_menu, tab_item_tools = st.tabs(["Current Orders", "Menu Items", 
 
 with tab_orders:
     try:
-        resp = requests.get(f"{API_BASE}/ord/kitchen_orders")
+        resp = requests.get(f"{API_BASE}/kitchen_orders")
         resp.raise_for_status()
         orders = resp.json()
     except requests.exceptions.RequestException as e:
@@ -93,7 +93,7 @@ with tab_orders:
 
                 # Fetch items for this order
                 try:
-                    items_resp = requests.get(f"{API_BASE}/ord/order_items/{order_id}")
+                    items_resp = requests.get(f"{API_BASE}/order_items/{order_id}")
                     items_resp.raise_for_status()
                     items = items_resp.json()
                 except requests.exceptions.RequestException:
@@ -125,7 +125,7 @@ with tab_orders:
 
 with tab_menu:
     try:
-        resp = requests.get(f"{API_BASE}/menu/menu_items")
+        resp = requests.get(f"{API_BASE}/menu_items")
         resp.raise_for_status()
         menu_items = resp.json()
     except requests.exceptions.RequestException as e:
@@ -161,7 +161,7 @@ with tab_item_tools:
     )
 
     try:
-        menu_resp = requests.get(f"{API_BASE}/menu/menu_items")
+        menu_resp = requests.get(f"{API_BASE}/menu_items")
         menu_resp.raise_for_status()
         menu_items = menu_resp.json()
     except requests.RequestException:
@@ -200,7 +200,7 @@ with tab_item_tools:
                 payload["actor_id"] = waiter_id
             try:
                 response = requests.put(
-                    f"{API_BASE}/ord/order_items/{int(order_item_id)}",
+                    f"{API_BASE}/order_items/{int(order_item_id)}",
                     json=payload,
                 )
                 if response.status_code == 404:
@@ -223,7 +223,7 @@ with tab_item_tools:
                     params = {"actor_id": waiter_id} if waiter_id else None
                     try:
                         response = requests.delete(
-                            f"{API_BASE}/ord/order_items/{int(order_item_id)}",
+                            f"{API_BASE}/order_items/{int(order_item_id)}",
                             params=params,
                         )
                         if response.status_code == 404:

@@ -28,7 +28,7 @@ if "order_cart" not in st.session_state:
 # Fetch menu items
 # ---------------------------------------------------------------------------
 try:
-    response = requests.get(f"{API_BASE}/menu/menu_items")
+    response = requests.get(f"{API_BASE}/menu_items")
     response.raise_for_status()
     menu_items = response.json()
 except requests.RequestException:
@@ -121,7 +121,7 @@ with col_right:
             try:
                 # Create the kitchen order header
                 order_resp = requests.post(
-                    f"{API_BASE}/ord/kitchen_orders",
+                    f"{API_BASE}/kitchen_orders",
                     json={
                         "table_id": table_number,
                         "status": "open",
@@ -137,7 +137,7 @@ with col_right:
                 for cart_item in cart:
                     for _ in range(cart_item["quantity"]):
                         item_resp = requests.post(
-                            f"{API_BASE}/ord/order_items",
+                            f"{API_BASE}/order_items",
                             json={
                                 "order_id": new_order_id,
                                 "menu_item_id": cart_item["menu_item_id"],
@@ -153,7 +153,7 @@ with col_right:
                 # Compensating delete: remove the partial order (cascades to items)
                 if new_order_id is not None:
                     try:
-                        requests.delete(f"{API_BASE}/ord/kitchen_orders/{new_order_id}")
+                        requests.delete(f"{API_BASE}/kitchen_orders/{new_order_id}")
                     except requests.RequestException:
                         logger.error(f"Failed to rollback order #{new_order_id}")
                 st.error("Failed to submit order. Cart preserved — please try again.")

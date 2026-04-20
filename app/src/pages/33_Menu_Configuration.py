@@ -23,7 +23,7 @@ with tab_menu:
 
     # ---- Fetch menu items -------------------------------------------------
     try:
-        menu_resp = requests.get(f"{API_BASE}/menu/menu_items")
+        menu_resp = requests.get(f"{API_BASE}/menu_items")
         menu_resp.raise_for_status()
         menu_items = menu_resp.json()
     except requests.RequestException:
@@ -76,7 +76,7 @@ with tab_menu:
                     "availability_status": new_item_status,
                 }
                 try:
-                    resp = requests.post(f"{API_BASE}/menu/menu_items", json=payload)
+                    resp = requests.post(f"{API_BASE}/menu_items", json=payload)
                     resp.raise_for_status()
                     st.success(f"Menu item '{new_item_name}' added successfully.")
                     st.rerun()
@@ -140,7 +140,7 @@ with tab_menu:
                         }
                         try:
                             resp = requests.put(
-                                f"{API_BASE}/menu/menu_items/{selected_menu['menu_item_id']}",
+                                f"{API_BASE}/menu_items/{selected_menu['menu_item_id']}",
                                 json=payload,
                             )
                             resp.raise_for_status()
@@ -162,7 +162,7 @@ with tab_menu:
                         if st.button("Yes, delete", key="confirm_del_menu"):
                             try:
                                 resp = requests.delete(
-                                    f"{API_BASE}/menu/menu_items/{selected_menu['menu_item_id']}"
+                                    f"{API_BASE}/menu_items/{selected_menu['menu_item_id']}"
                                 )
                                 resp.raise_for_status()
                                 st.success("Menu item deleted.")
@@ -181,7 +181,7 @@ with tab_ingredients:
 
     # ---- Fetch ingredients ------------------------------------------------
     try:
-        ing_resp = requests.get(f"{API_BASE}/inv/ingredients")
+        ing_resp = requests.get(f"{API_BASE}/ingredients")
         ing_resp.raise_for_status()
         ingredients = ing_resp.json()
     except requests.RequestException:
@@ -190,7 +190,7 @@ with tab_ingredients:
 
     # ---- Fetch suppliers (for dropdown) -----------------------------------
     try:
-        sup_resp = requests.get(f"{API_BASE}/inv/suppliers")
+        sup_resp = requests.get(f"{API_BASE}/suppliers")
         sup_resp.raise_for_status()
         suppliers = sup_resp.json()
     except requests.RequestException:
@@ -263,7 +263,7 @@ with tab_ingredients:
                     "expiration_date": new_ing_exp.strftime("%Y-%m-%d"),
                 }
                 try:
-                    resp = requests.post(f"{API_BASE}/inv/ingredients", json=payload)
+                    resp = requests.post(f"{API_BASE}/ingredients", json=payload)
                     resp.raise_for_status()
                     st.success(f"Ingredient '{new_ing_name}' added successfully.")
                     st.rerun()
@@ -355,7 +355,7 @@ with tab_ingredients:
                             payload["supplier_id"] = supplier_name_to_id[edit_ing_supplier]
                         try:
                             resp = requests.put(
-                                f"{API_BASE}/inv/ingredients/{selected_ing['ingredient_id']}",
+                                f"{API_BASE}/ingredients/{selected_ing['ingredient_id']}",
                                 json=payload,
                             )
                             resp.raise_for_status()
@@ -378,7 +378,7 @@ with tab_ingredients:
                         if st.button("Yes, delete", key="confirm_del_ing"):
                             try:
                                 resp = requests.delete(
-                                    f"{API_BASE}/inv/ingredients/{selected_ing['ingredient_id']}"
+                                    f"{API_BASE}/ingredients/{selected_ing['ingredient_id']}"
                                 )
                                 resp.raise_for_status()
                                 st.success("Ingredient deleted.")
