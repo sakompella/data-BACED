@@ -64,12 +64,15 @@ def compute_used(row):
     return float(row["expected_quantity"]) * multipliers[str(days)]
  
 usage_df["used"] = usage_df.apply(compute_used, axis=1).astype(float)
+
+# Aggregate multiple expected_usage rows per ingredient into one
+usage_df = usage_df.groupby("ingredient_name", as_index=False)["used"].sum()
 usage_df["avg_per_day"] = usage_df["used"] / days
- 
+
 ingredients_df["quantity"] = pd.to_numeric(ingredients_df["quantity"], errors="coerce")
 ingredients_df["reorder_count"] = pd.to_numeric(ingredients_df["reorder_count"], errors="coerce")
 stock_lookup = ingredients_df.set_index("ingredient_name")[["quantity", "reorder_count", "unit"]].to_dict("index")
- 
+
 usage_df["in_stock"] = usage_df["ingredient_name"].map(
     lambda n: stock_lookup.get(n, {}).get("quantity", 0)
 )
@@ -79,7 +82,7 @@ usage_df["reorder_count"] = usage_df["ingredient_name"].map(
 usage_df["status"] = usage_df.apply(
     lambda r: "Low" if r["in_stock"] <= r["reorder_count"] else "OK", axis=1
 )
- 
+
 ingredient_display = pd.DataFrame({
     "Ingredient": usage_df["ingredient_name"],
     f"Used ({period})": usage_df["used"],
@@ -131,6 +134,9 @@ usage_df["expected_7d"] = usage_df.apply(
     ),
     axis=1,
 )
+
+# Aggregate multiple expected_usage rows per ingredient into one
+usage_df = usage_df.groupby("ingredient_name", as_index=False)["expected_7d"].sum()
 
 ing_df["quantity"] = pd.to_numeric(ing_df["quantity"], errors="coerce")
 merged = usage_df.merge(ing_df, on="ingredient_name", how="inner", suffixes=("_usage", "_inv"))
