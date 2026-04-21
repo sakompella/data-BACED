@@ -23,7 +23,7 @@ def order_management_nav():
     st.sidebar.page_link("pages/02_Order_Management.py", label="Orders", icon="📋")
 
 def menu_management_nav():
-    st.sidebar.page_link("pages/03_Menu_Management.py", label="Menu_items", icon="📋")
+    st.sidebar.page_link("pages/03_Menu_Management.py", label="Menu Items", icon="📋")
     
 
 
