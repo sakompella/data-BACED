@@ -1,8 +1,8 @@
 # `database-files` Folder
 
-The MySQL server that is running in the db container is set up so that when the container is *created*, any `.sql` files in the `database-files` folder are automatically run.  Loosely speaking, the `.sql` files are run in "alphabetical" order.  So if your database schema is broken into a few files, it is easiest to rename them with a number at the beginning so they'll be run in the correct order.  So, something like `01_db.sql`, `02_db.sql` and so on. 
+The MySQL server that is running in the db container is set up so that when the container is *created*, any `.sql` files in the `database-files` folder are automatically run.  Loosely speaking, the `.sql` files are run in "alphabetical" order.  So if your database schema is broken into a few files, it is easiest to rename them with a number at the beginning so they'll be run in the correct order, such as `01_db.sql`, `02_db.sql` and so on. 
 
-If you make changes to any of the files in the `database-files/` folder AFTER the db container is started, you'll have to delete the container and re-create it for the SQL files to be re-executed.  **Note:** simply stopping and re-starting the db container will not re-run the files. 
+If you make changes to any of the files in the `database-files/` folder AFTER the db container is started, you must delete the container and re-create it for the SQL files to be re-executed.  **Note:** simply stopping and re-starting the db container will not re-run the files. 
 
 If you are in your sandbox repository, do the following:
 
