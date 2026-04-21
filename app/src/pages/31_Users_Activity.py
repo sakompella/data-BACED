@@ -1,11 +1,11 @@
 import logging
-logger = logging.getLogger(__name__)
-
 import streamlit as st
 import requests
 import pandas as pd
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_text, API_BASE
+from modules.style import inject_custom_css, status_css, API_BASE
+
+logger = logging.getLogger(__name__)
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -49,11 +49,11 @@ else:
         user_rows.append({
             "Name": full_name,
             "Role": role_name,
-            "Status": status_text("Active", "active"),
+            "Status": "Active",
         })
 
     users_df = pd.DataFrame(user_rows)
-    st.dataframe(users_df, use_container_width=True, hide_index=True)
+    st.dataframe(users_df.style.map(status_css, subset=["Status"]), use_container_width=True, hide_index=True)
 
 # ---------------------------------------------------------------------------
 # Section 2: Recent Activity Log

@@ -1,11 +1,11 @@
 import logging
-logger = logging.getLogger(__name__)
-
 import streamlit as st
 import requests
 from datetime import datetime
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_text, API_BASE
+from modules.style import inject_custom_css, status_badge, API_BASE
+
+logger = logging.getLogger(__name__)
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -69,7 +69,7 @@ with col_left:
                 st.markdown(f"${float(item['price']):.2f}")
                 badge_color = "green" if is_available else "amber"
                 badge_label = "Available" if is_available else "Unavailable"
-                st.markdown(status_text(badge_label, badge_color))
+                st.markdown(status_badge(badge_label, badge_color), unsafe_allow_html=True)
             with card_right:
                 st.write("")
                 if st.button(
@@ -103,7 +103,7 @@ with col_right:
         st.caption("No items added yet.")
     else:
         for cart_item in cart:
-            st.markdown(f"{cart_item['item_name']}  ×  **{cart_item['quantity']}**")
+            st.markdown(f"{cart_item['item_name']}  x  **{cart_item['quantity']}**")
         st.divider()
         total_count = sum(ci["quantity"] for ci in cart)
         st.markdown(f"**Total items:** {total_count}")
@@ -133,7 +133,7 @@ with col_right:
                 order_resp.raise_for_status()
                 new_order_id = order_resp.json().get("order_id")
 
-                # Add each cart item — rollback the order if any insert fails
+                # Add each cart item, rollback the order if any insert fails
                 for cart_item in cart:
                     for _ in range(cart_item["quantity"]):
                         item_resp = requests.post(
@@ -156,4 +156,4 @@ with col_right:
                         requests.delete(f"{API_BASE}/kitchen_orders/{new_order_id}")
                     except requests.RequestException:
                         logger.error(f"Failed to rollback order #{new_order_id}")
-                st.error("Failed to submit order. Cart preserved — please try again.")
+                st.error("Failed to submit order. Cart preserved, please try again.")

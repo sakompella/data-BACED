@@ -1,12 +1,12 @@
 import logging
-logger = logging.getLogger(__name__)
-
 import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_text, API_BASE
+from modules.style import inject_custom_css, status_css, API_BASE
+
+logger = logging.getLogger(__name__)
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -85,11 +85,11 @@ ingredient_display = pd.DataFrame({
     f"Used ({period})": usage_df["used"],
     "Avg/Day": usage_df['avg_per_day'],
     "In Stock": usage_df['in_stock'],
-    "Status": usage_df["status"].apply(lambda s: status_text(s, "red" if s == "Low" else "green")),
+    "Status": usage_df["status"],
 })
- 
+
 st.dataframe(
-    ingredient_display,
+    ingredient_display.style.map(status_css, subset=["Status"]),
     column_config={
         "Ingredient": st.column_config.TextColumn("Ingredient"),
         f"Used ({period})": st.column_config.NumberColumn(f"Used ({period})", format="%.1f"),
@@ -108,45 +108,25 @@ st.download_button(
 )
  
 st.divider()
- 
+
 # ---------------------------------------------------------------------------
 # Ingredient vs Expected Usage
 # ---------------------------------------------------------------------------
 st.subheader("Inventory vs Expected Usage")
 
-try:
-    usage_resp = requests.get(f"{API_BASE}/expected_usage")
-    usage_resp.raise_for_status()
-    usage_data = usage_resp.json()
-except requests.RequestException:
-    st.error("Failed to load expected usage data.")
-    st.stop()
-
-try:
-    ing_resp = requests.get(f"{API_BASE}/ingredients")
-    ing_resp.raise_for_status()
-    ing_data = ing_resp.json()
-except requests.RequestException:
-    st.error("Failed to load ingredients data.")
-    st.stop()
-
-if not usage_data or not ing_data:
+if not usage_data or not ingredients_data:
     st.warning("No data available for comparison.")
     st.stop()
 
-FREQ_MULTIPLIERS = {
-    "daily": 7,
-    "weekly": 1,
-    "biweekly": 0.5,
-}
+FREQ_MULTIPLIERS_7D = {k: v["7"] for k, v in FREQ_MULTIPLIERS.items()}
 
 usage_df = pd.DataFrame(usage_data)
-ing_df = pd.DataFrame(ing_data)
+ing_df = pd.DataFrame(ingredients_data)
 
 # Adjust expected quantity by frequency for a 7-day window
 usage_df["expected_quantity"] = pd.to_numeric(usage_df["expected_quantity"], errors="coerce")
 usage_df["expected_7d"] = usage_df.apply(
-    lambda r: float(r["expected_quantity"]) * FREQ_MULTIPLIERS.get(
+    lambda r: float(r["expected_quantity"]) * FREQ_MULTIPLIERS_7D.get(
         str(r.get("time_period", r.get("frequency", "daily"))).lower(), 1
     ),
     axis=1,
@@ -173,16 +153,14 @@ display_df = pd.DataFrame({
     "Variance": merged["variance"].apply(
         lambda v: f"+{v:.0f}" if v >= 0 else f"{v:.0f}"
     ),
-    "Risk": merged["risk"].apply(
-        lambda r: status_text(r, RISK_COLOR[r])
-    ),
+    "Risk": merged["risk"],
 })
 
 if display_df.empty:
     st.info("No comparison data available.")
 else:
     st.dataframe(
-        display_df,
+        display_df.style.map(status_css, subset=["Risk"]),
         column_config={
             "Expected (7d)": st.column_config.NumberColumn("Expected (7d)"),
             "Actual Stock": st.column_config.NumberColumn("Actual Stock"),
@@ -190,7 +168,7 @@ else:
             "Risk": st.column_config.TextColumn("Risk"),
         },
         hide_index=True,
-            use_container_width=True,
+        use_container_width=True,
     )
     st.download_button(
         label="Export Inventory vs Expected",
@@ -205,7 +183,7 @@ st.divider()
 # ---------------------------------------------------------------------------
 st.subheader("Add Demand Prediction")
  
-ing_options = {i["ingredient_name"]: i["ingredient_id"] for i in ing_data}
+ing_options = {i["ingredient_name"]: i["ingredient_id"] for i in ingredients_data}
  
 with st.form("demand_form", clear_on_submit=True):
     selected_ing = st.selectbox("Ingredient", options=list(ing_options.keys()))

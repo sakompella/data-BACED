@@ -1,13 +1,13 @@
 import logging
-logger = logging.getLogger(__name__)
-
 import streamlit as st
 import requests
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_text, API_BASE
+from modules.style import inject_custom_css, status_css, API_BASE
+
+logger = logging.getLogger(__name__)
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -63,14 +63,12 @@ table_df = pd.DataFrame({
     "Current Stock": usage_df["current_stock"],
     "Expected (7d)": usage_df["expected_7d"],
     "Projected Balance": usage_df["projected_balance_7d"],
-    "Risk": usage_df["risk"].apply(
-        lambda risk: status_text(risk, "red" if risk == "High" else "amber" if risk == "Medium" else "green")
-    ),
+    "Risk": usage_df["risk"],
 }).sort_values("Projected Balance")
 
 st.subheader("Projected Ingredient Position")
 st.dataframe(
-    table_df,
+    table_df.style.map(status_css, subset=["Risk"]),
     column_config={
         "Current Stock": st.column_config.NumberColumn("Current Stock", format="%.1f"),
         "Expected (7d)": st.column_config.NumberColumn("Expected (7d)", format="%.1f"),

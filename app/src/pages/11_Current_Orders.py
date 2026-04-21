@@ -1,13 +1,13 @@
 import logging
-logger = logging.getLogger(__name__)
-
 import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime
 from email.utils import parsedate_to_datetime
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_text, API_BASE
+from modules.style import inject_custom_css, status_badge, API_BASE
+
+logger = logging.getLogger(__name__)
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -53,9 +53,17 @@ def time_ago(created_at) -> str:
     return f"{hours} hour{'s' if hours != 1 else ''} ago"
 
 
+try:
+    menu_resp = requests.get(f"{API_BASE}/menu_items")
+    menu_resp.raise_for_status()
+    menu_items = menu_resp.json()
+except requests.exceptions.RequestException as e:
+    st.error(f"Failed to load menu items: {e}")
+    menu_items = []
+
 tab_orders, tab_menu, tab_item_tools = st.tabs(["Current Orders", "Menu Items", "Order Item Tools"])
 
-# ── Current Orders tab ──────────────────────────────────────────────────────
+# -- Current Orders tab ------------------------------------------------------
 
 with tab_orders:
     try:
@@ -85,7 +93,7 @@ with tab_orders:
                 with cols[0]:
                     st.markdown(f"**Table {table_id}**")
                 with cols[1]:
-                    st.markdown(status_text(label, color_key))
+                    st.markdown(status_badge(label, color_key), unsafe_allow_html=True)
                 with cols[2]:
                     st.caption(time_ago(created_at))
 
@@ -113,25 +121,17 @@ with tab_orders:
                         with item_cols[1]:
                             st.write(name)
                         with item_cols[2]:
-                            st.markdown(status_text(label, color_key))
+                            st.markdown(status_badge(label, color_key), unsafe_allow_html=True)
                 else:
                     st.caption("No items in this order.")
 
                 # Footer placeholder
                 num_items = len(items)
-                st.caption(f"Guests: 1 · Course 1 of 1 · {num_items} item{'s' if num_items != 1 else ''}")
+                st.caption(f"Guests: 1 | Course 1 of 1 | {num_items} item{'s' if num_items != 1 else ''}")
 
-# ── Menu Items tab ──────────────────────────────────────────────────────────
+# -- Menu Items tab ----------------------------------------------------------
 
 with tab_menu:
-    try:
-        resp = requests.get(f"{API_BASE}/menu_items")
-        resp.raise_for_status()
-        menu_items = resp.json()
-    except requests.exceptions.RequestException as e:
-        st.error(f"Failed to load menu items: {e}")
-        menu_items = []
-
     if not menu_items:
         st.info("No menu items available.")
     else:
@@ -146,7 +146,7 @@ with tab_menu:
         df = df[available].rename(columns=display_cols)
         st.dataframe(df, use_container_width=True, hide_index=True)
 
-# ── Order Item Tools tab ────────────────────────────────────────────────────
+# -- Order Item Tools tab ----------------------------------------------------
 
 with tab_item_tools:
     st.subheader("Order Item Route Tools")
@@ -159,13 +159,6 @@ with tab_item_tools:
         value=1,
         key="order_item_tool_id",
     )
-
-    try:
-        menu_resp = requests.get(f"{API_BASE}/menu_items")
-        menu_resp.raise_for_status()
-        menu_items = menu_resp.json()
-    except requests.RequestException:
-        menu_items = []
 
     menu_options = {
         f"{item['item_name']} (ID {item['menu_item_id']})": item["menu_item_id"]

@@ -1,13 +1,13 @@
 import logging
-logger = logging.getLogger(__name__)
-
 import streamlit as st
 import requests
 import pandas as pd
 import plotly.express as px
 import time
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_text, API_BASE
+from modules.style import inject_custom_css, status_css, STATUS_COLORS, API_BASE
+
+logger = logging.getLogger(__name__)
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -55,23 +55,25 @@ with left_col:
     health_rows = [
         {"Metric": "API Status",
          "Value": "Online" if api_online else "Down",
-         "Status": status_text("OK", "green") if api_online else status_text("Down", "red")},
+         "Status": "OK" if api_online else "Down"},
         {"Metric": "Response Time",
          "Value": f"{response_ms}ms",
-         "Status": status_text("OK", "green") if response_ms < 500 else status_text("Warning", "amber")},
+         "Status": "OK" if response_ms < 500 else "Warning"},
         {"Metric": "Database",
          "Value": f"{len(users_data)} users, {len(orders_data)} orders",
-         "Status": status_text("OK", "green")},
+         "Status": "OK"},
         {"Metric": "Menu Items",
          "Value": str(len(menu_data)),
-         "Status": status_text("OK", "green")},
+         "Status": "OK"},
         {"Metric": "Ingredients",
          "Value": str(len(ingredients_data)),
-         "Status": status_text("OK", "green")},
+         "Status": "OK"},
     ]
     health_df = pd.DataFrame(health_rows)
+    # Prevent pandas from coercing numeric-looking strings (e.g. "35") to float.
+    health_df["Value"] = health_df["Value"].astype(str)
 
-    st.dataframe(health_df, use_container_width=True, hide_index=True)
+    st.dataframe(health_df.style.map(status_css, subset=["Status"]), use_container_width=True, hide_index=True)
 
     # ---- Section 2: Data Discrepancies ------------------------------------
     st.subheader("Potential Data Discrepancies")
@@ -110,12 +112,22 @@ with left_col:
                 discrepancies_df["Variance"] = discrepancies_df["Variance"].round(1)
                 discrepancies_df = discrepancies_df.drop_duplicates(subset=["Item"]).reset_index(drop=True)
 
+                # Show whole numbers without a trailing ".0" (e.g. 35 not 35.0).
+                def _clean_numeric(series: pd.Series) -> pd.Series:
+                    return series.apply(lambda v: int(v) if v == int(v) else v)
+
+                for col in ("Expected", "Actual", "Variance"):
+                    discrepancies_df[col] = _clean_numeric(discrepancies_df[col])
+
     if not discrepancies_df.empty:
-        display_df = discrepancies_df.copy()
-        display_df["Variance"] = display_df["Variance"].apply(
-            lambda v: status_text(f"{v:.1f}", "red")
+        # All rows in this table have negative variance by construction.
+        def _red(_val) -> str:
+            return STATUS_COLORS["red"]
+        st.dataframe(
+            discrepancies_df.style.map(_red, subset=["Variance"]),
+            use_container_width=True,
+            hide_index=True,
         )
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
         st.caption("Items shown have actual stock below expected levels.")
     else:
         st.info("No data discrepancies detected.")

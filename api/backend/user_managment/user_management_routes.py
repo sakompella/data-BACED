@@ -47,25 +47,15 @@ def create_user():
                 current_app.logger.error(f"Failed to create user, missing required field: {field}")
                 return jsonify({"error": f"Missing required field: {field}"}), 400
 
-        if "email" in data:
-            query = """
-                INSERT INTO users (name, email, role_id)
-                VALUES (%s, %s, %s)
-            """
-            cursor.execute(query, (
-                data["name"],
-                data["email"],
-                data["role_id"],
-            ))
-        else:
-            query = """
-                INSERT INTO users (name, role_id)
-                VALUES (%s, %s)
-            """
-            cursor.execute(query, (
-                data["name"],
-                data["role_id"],
-            ))
+        query = """
+            INSERT INTO users (name, email, role_id)
+            VALUES (%s, %s, %s)
+        """
+        cursor.execute(query, (
+            data["name"],
+            data.get("email"),
+            data["role_id"],
+        ))
 
         get_db().commit()
         new_user_id = cursor.lastrowid

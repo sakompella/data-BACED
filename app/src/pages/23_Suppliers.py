@@ -1,11 +1,11 @@
 import logging
-logger = logging.getLogger(__name__)
- 
 import streamlit as st
 import requests
 import pandas as pd
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_text, API_BASE
+from modules.style import inject_custom_css, status_css, API_BASE
+
+logger = logging.getLogger(__name__)
  
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -75,18 +75,26 @@ def format_change(row):
     else:
         change_str = "N/A"
         color_key = "gray"
-    return status_text(change_str, color_key)
- 
+    return change_str, color_key
+
+change_results = prices_df.apply(format_change, axis=1)
+change_texts = [r[0] for r in change_results]
+change_keys = [r[1] for r in change_results]
+
 display_prices = pd.DataFrame({
     "Supplier": prices_df["supplier_name"],
     "Item": prices_df["ingredient_name"],
     "Prev. Price": prices_df["previous_price"],
     "Curr. Price": prices_df["current_price"],
-    "Change": prices_df.apply(format_change, axis=1),
+    "Change": change_texts,
 })
- 
+
+# Style the Change column using the per-row color keys computed above.
+change_css_series = pd.Series(change_keys, index=display_prices.index).map(status_css)
+styled = display_prices.style.apply(lambda _: change_css_series, subset=["Change"], axis=0)
+
 st.dataframe(
-    display_prices,
+    styled,
     column_config={
         "Prev. Price": st.column_config.NumberColumn("Prev. Price", format="$%.2f"),
         "Curr. Price": st.column_config.NumberColumn("Curr. Price", format="$%.2f"),

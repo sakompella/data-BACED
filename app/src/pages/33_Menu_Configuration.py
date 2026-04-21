@@ -1,11 +1,11 @@
 import logging
-logger = logging.getLogger(__name__)
-
 import streamlit as st
 import requests
 import pandas as pd
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_text, API_BASE
+from modules.style import inject_custom_css, status_css, API_BASE
+
+logger = logging.getLogger(__name__)
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -41,11 +41,14 @@ with tab_menu:
             "Description": menu_df.get("description", ""),
             "Price": menu_df["price"],
             "Status": menu_df["availability_status"].apply(
-                lambda s: status_text("Available", "green") if s == "available"
-                else status_text("Unavailable", "red")
+                lambda s: "Available" if s == "available" else "Unavailable"
             ),
         })
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
+        st.dataframe(
+            display_df.style.map(status_css, subset=["Status"]),
+            use_container_width=True,
+            hide_index=True,
+        )
     else:
         st.info("No menu items found.")
 

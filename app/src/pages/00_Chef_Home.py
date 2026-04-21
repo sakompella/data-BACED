@@ -10,26 +10,26 @@ st.set_page_config(layout="wide")
 SideBarLinks()
 inject_custom_css()
 
-st.title(f"Welcome, {st.session_state['first_name']} — Chef")
+st.title(f"Welcome, {st.session_state['first_name']}, Chef")
 st.caption("Manage kitchen operations, monitor inventory, and keep the menu fresh.")
 
 try:
     orders = requests.get(f"{API_BASE}/kitchen_orders", timeout=5).json()
     pending_orders = sum(1 for o in orders if o.get("status") not in ("completed", "cancelled"))
 except Exception:
-    pending_orders = "—"
+    pending_orders = "N/A"
 
 try:
     ingredients = requests.get(f"{API_BASE}/ingredients", timeout=5).json()
     low_stock = sum(1 for i in ingredients if i.get("quantity", 0) <= i.get("reorder_count", 0))
 except Exception:
-    low_stock = "—"
+    low_stock = "N/A"
 
 try:
     menu_items = requests.get(f"{API_BASE}/menu_items", timeout=5).json()
     total_menu = len(menu_items)
 except Exception:
-    total_menu = "—"
+    total_menu = "N/A"
 
 col1, col2, col3 = st.columns(3)
 with col1:

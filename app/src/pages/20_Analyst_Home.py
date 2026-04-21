@@ -6,7 +6,7 @@ st.set_page_config(layout='wide')
 SideBarLinks()
 inject_custom_css()
 
-st.title(f"Welcome, {st.session_state['first_name']} — Analyst")
+st.title(f"Welcome, {st.session_state['first_name']}, Analyst")
 st.caption("Monitor inventory, suppliers, and usage forecasts across the operation.")
 
 if st.button('Sales',

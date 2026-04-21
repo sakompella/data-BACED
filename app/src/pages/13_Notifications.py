@@ -1,10 +1,10 @@
 import logging
-logger = logging.getLogger(__name__)
-
 import streamlit as st
 import requests
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_text, API_BASE
+from modules.style import inject_custom_css, status_badge, API_BASE
+
+logger = logging.getLogger(__name__)
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -65,9 +65,9 @@ def display_notifications(notif_list, key_prefix: str):
                 st.caption(str(created_at))
             with cols[1]:
                 if is_read:
-                    st.markdown(status_text("Read", "green"))
+                    st.markdown(status_badge("Read", "green"), unsafe_allow_html=True)
                 else:
-                    st.markdown(status_text("Unread", "amber"))
+                    st.markdown(status_badge("Unread", "amber"), unsafe_allow_html=True)
             with cols[2]:
                 if not is_read:
                     if st.button("Mark Read", key=f"mark_read_{key_prefix}_{alert_id}"):

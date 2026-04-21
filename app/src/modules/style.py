@@ -2,24 +2,42 @@ import streamlit as st
 
 API_BASE = "http://api:4000"
 
-STATUS_EMOJI = {
-    "low":       "🔴", "red":       "🔴", "high":      "🔴",
-    "inactive":  "🔴", "cancelled": "🔴",
-    "ok":        "🟢", "green":     "🟢", "active":    "🟢",
-    "ready":     "🟢", "completed": "🟢",
-    "expiring":  "🟡", "amber":     "🟡", "warning":   "🟡",
-    "cooking":   "🟡", "in_progress": "🟡", "medium":  "🟡",
-    "pending":   "🟡",
-    "queued":    "⚪", "gray":      "⚪", "open":      "⚪",
-    "prepping":  "🔵", "blue":      "🔵",
+STATUS_COLORS: dict[str, str] = {
+    "low":          "background-color: #E53836; color: white",
+    "red":          "background-color: #E53836; color: white",
+    "high":         "background-color: #E53836; color: white",
+    "inactive":     "background-color: #E53836; color: white",
+    "cancelled":    "background-color: #E53836; color: white",
+    "unavailable":  "background-color: #E53836; color: white",
+    "ok":           "background-color: #4CAF50; color: white",
+    "green":        "background-color: #4CAF50; color: white",
+    "active":       "background-color: #4CAF50; color: white",
+    "ready":        "background-color: #4CAF50; color: white",
+    "completed":    "background-color: #4CAF50; color: white",
+    "available":    "background-color: #4CAF50; color: white",
+    "expiring":     "background-color: #FFD600; color: black",
+    "amber":        "background-color: #FFD600; color: black",
+    "warning":      "background-color: #FFD600; color: black",
+    "in_progress":  "background-color: #FFD600; color: black",
+    "medium":       "background-color: #FFD600; color: black",
+    "pending":      "background-color: #FFD600; color: black",
+    "cooking":      "background-color: #FFD600; color: black",
+    "open":         "background-color: #E0E0E0; color: black",
+    "queued":       "background-color: #E0E0E0; color: black",
+    "gray":         "background-color: #E0E0E0; color: black",
 }
 
 
-def status_text(text: str, color_key: str = "") -> str:
-    """Return an emoji-prefixed status string for native Streamlit display."""
+def status_css(key: str) -> str:
+    """Return a CSS string for use with df.style.map()."""
+    return STATUS_COLORS.get(key.lower().strip(), "")
+
+
+def status_badge(text: str, color_key: str = "") -> str:
+    """Return an HTML badge string for use with st.markdown(unsafe_allow_html=True)."""
     key = (color_key or text).lower().strip()
-    emoji = STATUS_EMOJI.get(key, "⚪")
-    return f"{emoji} {text}"
+    css = STATUS_COLORS.get(key, "background-color: #E0E0E0; color: black")
+    return f'<span style="{css}; padding: 2px 8px; border-radius: 4px; font-size: 0.85em;">{text}</span>'
 
 
 def inject_custom_css():

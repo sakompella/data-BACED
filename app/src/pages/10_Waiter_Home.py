@@ -10,7 +10,7 @@ st.set_page_config(layout="wide")
 SideBarLinks()
 inject_custom_css()
 
-st.title(f"Welcome, {st.session_state['first_name']} — Waiter")
+st.title(f"Welcome, {st.session_state['first_name']}, Waiter")
 st.caption("Take orders, track tables, and keep guests happy.")
 
 user_id = st.session_state.get("user_id")
@@ -22,13 +22,13 @@ try:
         if o.get("waiter_id") == user_id and o.get("status") not in ("completed", "cancelled")
     )
 except Exception:
-    active_orders = "—"
+    active_orders = "N/A"
 
 try:
     notifications = requests.get(f"{API_BASE}/notifications/{user_id}", timeout=5).json()
     unread_alerts = sum(1 for n in notifications if not n.get("is_read"))
 except Exception:
-    unread_alerts = "—"
+    unread_alerts = "N/A"
 
 try:
     menu_items = requests.get(f"{API_BASE}/menu_items", timeout=5).json()
@@ -37,7 +37,7 @@ try:
         if str(m.get("availability_status", "")).lower() == "available"
     )
 except Exception:
-    available_items = "—"
+    available_items = "N/A"
 
 col1, col2, col3 = st.columns(3)
 with col1:

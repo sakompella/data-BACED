@@ -1,10 +1,10 @@
 import logging
-logger = logging.getLogger(__name__)
-
 import streamlit as st
 import requests
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_text, API_BASE
+from modules.style import inject_custom_css, status_badge, API_BASE
+
+logger = logging.getLogger(__name__)
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -67,7 +67,7 @@ else:
         cols[0].write(item.get('item_name', "-"))
         cols[1].write(item.get('description',"-"))
         cols[2].write(f"${float(item.get('price', 0)):.2f}")
-        cols[3].write(status_text(avail.capitalize(), color))
+        cols[3].markdown(status_badge(avail.capitalize(), color), unsafe_allow_html=True)
 
 st.divider()
 

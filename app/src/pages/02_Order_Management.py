@@ -1,10 +1,10 @@
 import logging
-logger = logging.getLogger(__name__)
-
 import streamlit as st
 import requests
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, status_text, API_BASE
+from modules.style import inject_custom_css, status_badge, API_BASE
+
+logger = logging.getLogger(__name__)
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -94,31 +94,31 @@ else:
     # Render order table
     for order in orders:
         oid = order["order_id"]
-        table_id = order.get("table_id", "—")
+        table_id = order.get("table_id", "?")
         status_key = order.get("status", "open")
         label = STATUS_LABEL.get(status_key, status_key)
         color = STATUS_COLOR.get(status_key, "gray")
         items = order["_items"]
-        item_names = ", ".join(it.get("item_name", "?") for it in items) if items else "—"
+        item_names = ", ".join(it.get("item_name", "?") for it in items) if items else "(none)"
 
         cols = st.columns([1, 1, 3, 2, 2])
         cols[0].markdown(f"**#{oid}**")
         cols[1].markdown(f"Table {table_id}")
         cols[2].markdown(item_names)
-        cols[3].write(status_text(label, color))
+        cols[3].markdown(status_badge(label, color), unsafe_allow_html=True)
 
         with cols[4]:
             if status_key == "open":
                 if st.button("Claim", key=f"claim_{oid}"):
                     if update_order_status(oid, "in_progress"):
-                        st.session_state["flash"] = f"Order #{oid} claimed — prep summary updated"
+                        st.session_state["flash"] = f"Order #{oid} claimed, prep summary updated"
                         st.rerun()
                     else:
                         st.error("Failed to claim order.")
             elif status_key == "in_progress":
                 if st.button("Mark Ready", key=f"ready_{oid}"):
                     if update_order_status(oid, "completed"):
-                        st.session_state["flash"] = f"Order #{oid} marked ready — prep summary updated"
+                        st.session_state["flash"] = f"Order #{oid} marked ready, prep summary updated"
                         st.rerun()
                     else:
                         st.error("Failed to mark order ready.")

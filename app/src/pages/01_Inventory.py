@@ -1,12 +1,12 @@
 import logging
-logger = logging.getLogger(__name__)
-
 import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime, timedelta
 from modules.nav import SideBarLinks
 from modules.style import inject_custom_css, API_BASE
+
+logger = logging.getLogger(__name__)
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -74,7 +74,7 @@ with tab_stock:
     display_df["Status"] = display_df["status"]
     display_df["Expiration Date"] = display_df["expiration_date"].dt.strftime("%Y-%m-%d")
     display_df["Details"] = display_df.apply(
-        lambda r: f"Reorder at {r['reorder_count']} · Supplier: {r['supplier_name']}",
+        lambda r: f"Reorder at {r['reorder_count']} | Supplier: {r['supplier_name']}",
         axis=1,
     )
 

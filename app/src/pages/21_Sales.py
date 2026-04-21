@@ -1,12 +1,12 @@
 import logging
-logger = logging.getLogger(__name__)
-
 import streamlit as st
 import requests
 import pandas as pd
 import plotly.express as px
 from modules.nav import SideBarLinks
 from modules.style import inject_custom_css, API_BASE
+
+logger = logging.getLogger(__name__)
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -20,10 +20,6 @@ st.title("Sales")
 _, period_col = st.columns([4, 1])
 with period_col:
     period = st.selectbox("Period", ["Last 7 Days", "Last 30 Days"])
-
-days = 7 if period == "Last 7 Days" else 30
-
-
 
 # ---------------------------------------------------------------------------
 # Sales + Orders
@@ -67,7 +63,7 @@ with col_sales:
         )
 
         daily["revenue"] = daily["orders"] * avg_menu_price
-        daily["top_seller"] = "—"
+        daily["top_seller"] = "N/A"
 
         sales_display = pd.DataFrame({
             "Date": daily["date"].astype(str),

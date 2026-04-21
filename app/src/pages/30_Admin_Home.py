@@ -10,7 +10,7 @@ st.set_page_config(layout='wide')
 SideBarLinks()
 inject_custom_css()
 
-st.title(f"Welcome, {st.session_state['first_name']} — Administrator")
+st.title(f"Welcome, {st.session_state['first_name']}, Administrator")
 st.caption("Manage users, roles, menu configuration, and system activity.")
 
 col1, col2, col3, col4 = st.columns(4)
@@ -20,28 +20,28 @@ with col1:
         data = requests.get(f"{API_BASE}/users").json()
         st.metric("Total Users", len(data))
     except Exception:
-        st.metric("Total Users", "—")
+        st.metric("Total Users", "N/A")
 
 with col2:
     try:
         data = requests.get(f"{API_BASE}/roles").json()
         st.metric("Roles Defined", len(data))
     except Exception:
-        st.metric("Roles Defined", "—")
+        st.metric("Roles Defined", "N/A")
 
 with col3:
     try:
         data = requests.get(f"{API_BASE}/menu_items").json()
         st.metric("Menu Items", len(data))
     except Exception:
-        st.metric("Menu Items", "—")
+        st.metric("Menu Items", "N/A")
 
 with col4:
     try:
         data = requests.get(f"{API_BASE}/activity_log").json()
         st.metric("Activity Logs", len(data))
     except Exception:
-        st.metric("Activity Logs", "—")
+        st.metric("Activity Logs", "N/A")
 
 st.divider()
 st.subheader("Quick Actions")
