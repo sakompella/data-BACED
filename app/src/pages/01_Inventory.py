@@ -4,7 +4,7 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 from modules.nav import SideBarLinks
-from modules.style import inject_custom_css, API_BASE
+from modules.style import inject_custom_css, status_css, API_BASE
 
 logger = logging.getLogger(__name__)
 
@@ -78,16 +78,8 @@ with tab_stock:
         axis=1,
     )
 
-    def color_status(val):
-        colors = {
-            "Low": "background-color: #E53836; color: white",
-            "Expiring": "background-color: #FFD600; color: black",
-            "OK": "background-color: #4CAF50; color: white",
-        }
-        return colors.get(val, "")
-
     view = display_df[["ingredient_name", "quantity", "unit", "Expiration Date", "Status", "Details"]]
-    styled = view.style.map(color_status, subset=["Status"])
+    styled = view.style.map(status_css, subset=["Status"])
 
     st.dataframe(
         styled,
@@ -118,7 +110,7 @@ with tab_expiring:
         exp_display["Expiration Date"] = exp_display["expiration_date"].dt.strftime("%Y-%m-%d")
 
         exp_view = exp_display[["ingredient_name", "quantity", "unit", "Expiration Date", "Status", "supplier_name"]]
-        exp_styled = exp_view.style.map(color_status, subset=["Status"])
+        exp_styled = exp_view.style.map(status_css, subset=["Status"])
 
         st.dataframe(
             exp_styled,
