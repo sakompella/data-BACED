@@ -7,10 +7,6 @@ def home_nav():
     st.sidebar.page_link("Home.py", label="Home", icon="🏠")
 
 
-def about_page_nav():
-    st.sidebar.page_link("pages/40_About.py", label="About", icon="🧠")
-
-
 # ---- Role: Chef (Armando) ---------------------------------------------------
 
 def chef_home_nav():
@@ -120,8 +116,6 @@ def SideBarLinks(show_home=False):
             users_activity_nav()
             system_data_nav()
             menu_configuration_nav()
-
-    about_page_nav()
 
     if st.session_state["authenticated"]:
         if st.sidebar.button("Logout"):
