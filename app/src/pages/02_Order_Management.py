@@ -12,6 +12,11 @@ inject_custom_css()
 
 st.title("Order Management")
 
+# Display and clear any flash message set by a previous action
+flash = st.session_state.pop("flash", None)
+if flash:
+    st.success(flash)
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -106,12 +111,14 @@ else:
             if status_key == "open":
                 if st.button("Claim", key=f"claim_{oid}"):
                     if update_order_status(oid, "in_progress"):
+                        st.session_state["flash"] = f"Order #{oid} claimed — prep summary updated"
                         st.rerun()
                     else:
                         st.error("Failed to claim order.")
             elif status_key == "in_progress":
                 if st.button("Mark Ready", key=f"ready_{oid}"):
                     if update_order_status(oid, "completed"):
+                        st.session_state["flash"] = f"Order #{oid} marked ready — prep summary updated"
                         st.rerun()
                     else:
                         st.error("Failed to mark order ready.")
