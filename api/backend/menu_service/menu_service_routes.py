@@ -128,6 +128,7 @@ def delete_menu_item(menu_item_id):
 
         actor_id = request.args.get("actor_id") or (request.get_json(silent=True) or {}).get("actor_id")
 
+        cursor.execute("DELETE FROM order_items WHERE menu_item_id = %s", (menu_item_id,))
         cursor.execute("DELETE FROM menu_items WHERE menu_item_id = %s", (menu_item_id,))
         get_db().commit()
 
