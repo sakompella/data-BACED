@@ -53,12 +53,13 @@ with col_sales:
     if orders_data:
         orders_df = pd.DataFrame(orders_data)
         orders_df["date"] = pd.to_datetime(orders_df["created_at"]).dt.date
+        days = 7 if period == "Last 7 Days" else 30
         daily = (
             orders_df.groupby("date")
             .size()
             .reset_index(name="orders")
             .sort_values("date", ascending=False)
-            .head(7)
+            .head(days)
             .sort_values("date")
         )
 
