@@ -125,9 +125,8 @@ with tab_orders:
                 else:
                     st.caption("No items in this order.")
 
-                # Footer placeholder
                 num_items = len(items)
-                st.caption(f"Guests: 1 | Course 1 of 1 | {num_items} item{'s' if num_items != 1 else ''}")
+                st.caption(f"{num_items} item{'s' if num_items != 1 else ''}")
 
 # -- Menu Items tab ----------------------------------------------------------
 
