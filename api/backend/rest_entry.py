@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from dotenv import load_dotenv
 import os
 import logging
@@ -34,6 +34,10 @@ def create_app():
     # Register the cleanup hook for the database connection.
     app.logger.info("create_app(): initializing database connection")
     init_db(app)
+
+    @app.route("/")
+    def health_check():
+        return jsonify({"status": "healthy"}), 200
 
     # Register the routes from each Blueprint with the app object.
     app.logger.info("create_app(): registering blueprints")
