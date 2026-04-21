@@ -112,21 +112,28 @@ with left_col:
                 discrepancies_df["Variance"] = discrepancies_df["Variance"].round(1)
                 discrepancies_df = discrepancies_df.drop_duplicates(subset=["Item"]).reset_index(drop=True)
 
-                # Show whole numbers without a trailing ".0" (e.g. 35 not 35.0).
-                def _clean_numeric(series: pd.Series) -> pd.Series:
-                    return series.apply(lambda v: int(v) if v == int(v) else v)
-
-                for col in ("Expected", "Actual", "Variance"):
-                    discrepancies_df[col] = _clean_numeric(discrepancies_df[col])
-
     if not discrepancies_df.empty:
+        # Format numeric columns as strings to avoid pandas/Arrow rendering them
+        # with excess decimal places (e.g. "52.800000"). {:g} strips trailing zeros.
+        def _fmt(v) -> str:
+            return f"{v:g}"
+
+        display_df = discrepancies_df.copy()
+        for col in ("Expected", "Actual", "Variance"):
+            display_df[col] = display_df[col].map(_fmt)
+
         # All rows in this table have negative variance by construction.
         def _red(_val) -> str:
             return STATUS_COLORS["red"]
         st.dataframe(
-            discrepancies_df.style.map(_red, subset=["Variance"]),
+            display_df.style.map(_red, subset=["Variance"]),
             use_container_width=True,
             hide_index=True,
+            column_config={
+                "Expected": st.column_config.TextColumn("Expected"),
+                "Actual": st.column_config.TextColumn("Actual"),
+                "Variance": st.column_config.TextColumn("Variance"),
+            },
         )
         st.caption("Items shown have actual stock below expected levels.")
     else:
