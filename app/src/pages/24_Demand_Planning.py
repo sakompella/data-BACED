@@ -45,6 +45,9 @@ usage_df["expected_7d"] = usage_df.apply(
     axis=1,
 )
 
+# Aggregate multiple expected_usage rows per ingredient into one
+usage_df = usage_df.groupby("ingredient_name", as_index=False)["expected_7d"].sum()
+
 ingredients_df["quantity"] = pd.to_numeric(ingredients_df["quantity"], errors="coerce").fillna(0.0)
 stock_by_name = ingredients_df.set_index("ingredient_name")["quantity"].to_dict()
 usage_df["current_stock"] = usage_df["ingredient_name"].map(lambda name: float(stock_by_name.get(name, 0.0)))
